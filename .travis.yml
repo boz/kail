@@ -1,0 +1,21 @@
+language: go
+
+go:
+  - 1.8
+  - master
+
+sudo: required
+
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install musl-tools -y
+
+install:
+  - make install-deps
+
+script: |
+  make test-full && \
+  if [ "$TRAVIS_BRANCH" == "master" -a "$TRAVIS_GO_VERSION" == "1.8" ]; then
+    docker login -u "$DOCKERHUB_USERNAME" -p "$DOCKERHUB_PASSWORD" && \
+      make image-push
+  fi
