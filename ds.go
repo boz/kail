@@ -9,6 +9,7 @@ import (
 	"github.com/boz/kcache/types/node"
 	"github.com/boz/kcache/types/pod"
 	"github.com/boz/kcache/types/service"
+	"k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -23,6 +24,8 @@ type DSBuilder interface {
 }
 
 type DS interface {
+	Ready() <-chan struct{}
+	Stop()
 }
 
 type dsBuilder struct {
@@ -77,7 +80,7 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 	ds.podBase = base
 	ds.pods, err = base.CloneWithFilter(filter.Null())
 	if err != nil {
-		ds.stopAll()
+		ds.closeAll()
 		return nil, log.Err(err, "null filter")
 	}
 
@@ -89,7 +92,7 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 
 		ds.pods, err = ds.pods.CloneWithFilter(filter.NSName(ids...))
 		if err != nil {
-			ds.stopAll()
+			ds.closeAll()
 			return nil, log.Err(err, "namespace filter")
 		}
 	}
@@ -97,7 +100,7 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 	if len(b.pods) != 0 {
 		ds.pods, err = ds.pods.CloneWithFilter(filter.NSName(b.pods...))
 		if err != nil {
-			ds.stopAll()
+			ds.closeAll()
 			return nil, log.Err(err, "pods filter")
 		}
 	}
@@ -105,7 +108,7 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 	if len(b.labels) != 0 {
 		ds.pods, err = ds.pods.CloneWithFilter(filter.Labels(b.labels))
 		if err != nil {
-			ds.stopAll()
+			ds.closeAll()
 			return nil, log.Err(err, "labels filter")
 		}
 	}
@@ -113,18 +116,46 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 	if len(b.services) != 0 {
 		ds.servicesBase, err = service.NewController(ctx, log, cs, "")
 		if err != nil {
-			ds.stopAll()
+			ds.closeAll()
 			return nil, log.Err(err, "service base controller")
 		}
 
 		ds.services, err = ds.servicesBase.CloneWithFilter(filter.NSName(b.services...))
 		if err != nil {
-			ds.stopAll()
+			ds.closeAll()
 			return nil, log.Err(err, "service controller")
 		}
-	}
 
-	if len(b.nodes) != 0 {
+		pods, err := ds.pods.CloneWithFilter(filter.All())
+		if err != nil {
+			ds.closeAll()
+			return nil, log.Err(err, "services filter")
+		}
+
+		ds.pods = pods
+
+		update := func(_ *v1.Service) {
+			objs, err := ds.services.Cache().List()
+			if err == nil {
+				log.Err(err, "service cache list")
+				return
+			}
+			pods.Refilter(service.PodsFilter(objs...))
+		}
+
+		handler := service.BuildHandler().
+			OnInitialize(func(objs []*v1.Service) {
+				pods.Refilter(service.PodsFilter(objs...))
+			}).
+			OnCreate(update).
+			OnUpdate(update).
+			OnDelete(update).
+			Create()
+
+		if _, err := service.NewMonitor(ds.services, handler); err != nil {
+			ds.closeAll()
+			return nil, log.Err(err, "services monitor")
+		}
 	}
 
 	return ds, nil
@@ -139,13 +170,31 @@ type datastore struct {
 	nodes        node.Controller
 }
 
-func (ds *datastore) stopAll() {
+func (ds *datastore) Ready() <-chan struct{} {
+	return ds.pods.Ready()
+}
+
+func (ds *datastore) Stop() {
+	ds.closeAll()
+	ds.waitAll()
+}
+
+func (ds *datastore) closeAll() {
 	closeController(ds.podBase)
 	closeController(ds.servicesBase)
 	closeController(ds.nodesBase)
 	closeController(ds.pods)
 	closeController(ds.services)
 	closeController(ds.nodes)
+}
+
+func (ds *datastore) waitAll() {
+	waitController(ds.podBase)
+	waitController(ds.servicesBase)
+	waitController(ds.nodesBase)
+	waitController(ds.pods)
+	waitController(ds.services)
+	waitController(ds.nodes)
 }
 
 type closeable interface {
@@ -155,5 +204,15 @@ type closeable interface {
 func closeController(controller closeable) {
 	if controller != nil {
 		controller.Close()
+	}
+}
+
+type doneable interface {
+	Done() <-chan struct{}
+}
+
+func waitController(controller doneable) {
+	if controller != nil {
+		<-controller.Done()
 	}
 }

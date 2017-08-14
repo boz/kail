@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/boz/kail"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -18,4 +19,10 @@ func main() {
 	kingpin.CommandLine.HelpFlag.Short('h')
 	kingpin.CommandLine.Help = "Tail for kubernetes pods"
 	kingpin.Parse()
+
+	dsb := kail.NewDSBuilder()
+
+	if flagNs != nil {
+		dsb = dsb.WithNamespace(*flagNs...)
+	}
 }

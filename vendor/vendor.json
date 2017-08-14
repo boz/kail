@@ -51,44 +51,44 @@
 		{
 			"checksumSHA1": "3diAMgj9b35BDoCRkc5TAx4lJRw=",
 			"path": "github.com/boz/kcache",
-			"revision": "0e6eff6e73cb76b217686b1c3df2d722425703fb",
-			"revisionTime": "2017-08-02T22:47:48Z"
+			"revision": "71e3f3158e3a56c3290ec16e61f1f67c5295e8ed",
+			"revisionTime": "2017-08-14T07:13:16Z"
 		},
 		{
 			"checksumSHA1": "RGlf5AzjJwJDpwCJWUZKRX+lfgw=",
 			"path": "github.com/boz/kcache/client",
-			"revision": "0e6eff6e73cb76b217686b1c3df2d722425703fb",
-			"revisionTime": "2017-08-02T22:47:48Z"
+			"revision": "71e3f3158e3a56c3290ec16e61f1f67c5295e8ed",
+			"revisionTime": "2017-08-14T07:13:16Z"
 		},
 		{
-			"checksumSHA1": "fM9q+AeeT01z8SHiwh1AsFfdY0U=",
+			"checksumSHA1": "WnlorQqi+8vonbl1oww4XJzjTtM=",
 			"path": "github.com/boz/kcache/filter",
-			"revision": "0e6eff6e73cb76b217686b1c3df2d722425703fb",
-			"revisionTime": "2017-08-02T22:47:48Z"
+			"revision": "71e3f3158e3a56c3290ec16e61f1f67c5295e8ed",
+			"revisionTime": "2017-08-14T07:13:16Z"
 		},
 		{
 			"checksumSHA1": "cVUF28ARwaKHooP4gpYjH9+TMmc=",
 			"path": "github.com/boz/kcache/nsname",
-			"revision": "0e6eff6e73cb76b217686b1c3df2d722425703fb",
-			"revisionTime": "2017-08-02T22:47:48Z"
+			"revision": "71e3f3158e3a56c3290ec16e61f1f67c5295e8ed",
+			"revisionTime": "2017-08-14T07:13:16Z"
 		},
 		{
 			"checksumSHA1": "qGyOw78D3ReTEqlAYOID7kmv/54=",
 			"path": "github.com/boz/kcache/types/node",
-			"revision": "0e6eff6e73cb76b217686b1c3df2d722425703fb",
-			"revisionTime": "2017-08-02T22:47:48Z"
+			"revision": "71e3f3158e3a56c3290ec16e61f1f67c5295e8ed",
+			"revisionTime": "2017-08-14T07:13:16Z"
 		},
 		{
 			"checksumSHA1": "SfoO3Z7prg8p6xyP+PH/0YBynlA=",
 			"path": "github.com/boz/kcache/types/pod",
-			"revision": "0e6eff6e73cb76b217686b1c3df2d722425703fb",
-			"revisionTime": "2017-08-02T22:47:48Z"
+			"revision": "71e3f3158e3a56c3290ec16e61f1f67c5295e8ed",
+			"revisionTime": "2017-08-14T07:13:16Z"
 		},
 		{
-			"checksumSHA1": "p9K8vVUGiD3wHF05Z5Nv3K8BKPw=",
+			"checksumSHA1": "b56GLgiQzgthjj6jrkXZ+iPTOd4=",
 			"path": "github.com/boz/kcache/types/service",
-			"revision": "0e6eff6e73cb76b217686b1c3df2d722425703fb",
-			"revisionTime": "2017-08-02T22:47:48Z"
+			"revision": "71e3f3158e3a56c3290ec16e61f1f67c5295e8ed",
+			"revisionTime": "2017-08-14T07:13:16Z"
 		},
 		{
 			"checksumSHA1": "mrz/kicZiUaHxkyfvC/DyQcr8Do=",
