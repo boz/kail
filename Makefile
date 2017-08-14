@@ -1,19 +1,19 @@
 
-DOCKER_IMAGE ?= ktail
+DOCKER_IMAGE ?= kail
 DOCKER_REPO  ?= abozanich/$(DOCKER_IMAGE)
 DOCKER_TAG   ?= latest
 
 IMG_LDFLAGS := -w -linkmode external -extldflags "-static"
 
 build:
-	go build ./cmd/ktail
+	govendor build -i +local
 
 ifeq ($(shell uname -s),Darwin)
 build-linux:
-	GOOS=linux GOARCH=amd64 go build -o ktail-linux ./cmd/ktail
+	GOOS=linux GOARCH=amd64 go build -o kail-linux ./cmd/kail
 else
 build-linux:
-	CC=$$(which musl-gcc) go build --ldflags '$(IMG_LDFLAGS)' -o ktail-linux ./cmd/ktail
+	CC=$$(which musl-gcc) go build --ldflags '$(IMG_LDFLAGS)' -o kail-linux ./cmd/kail
 endif
 
 test:
@@ -40,7 +40,7 @@ install-deps:
 	govendor sync
 
 clean:
-	rm ktail ktail-linux 2>/dev/null || true
+	rm kail kail-linux 2>/dev/null || true
 
 .PHONY: build build-linux \
 	test test-full \
