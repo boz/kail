@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -17,5 +15,7 @@ var (
 )
 
 func main() {
-	fmt.Println("vim-go")
+	kingpin.CommandLine.HelpFlag.Short('h')
+	kingpin.CommandLine.Help = "Tail for kubernetes pods"
+	kingpin.Parse()
 }

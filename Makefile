@@ -6,7 +6,7 @@ DOCKER_TAG   ?= latest
 IMG_LDFLAGS := -w -linkmode external -extldflags "-static"
 
 build:
-	govendor build -i +local
+	govendor build -i +program
 
 ifeq ($(shell uname -s),Darwin)
 build-linux:
