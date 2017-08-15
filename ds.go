@@ -24,7 +24,9 @@ type DSBuilder interface {
 }
 
 type DS interface {
+	Pods() pod.Controller
 	Ready() <-chan struct{}
+	Done() <-chan struct{}
 	Stop()
 }
 
@@ -70,7 +72,10 @@ func (b *dsBuilder) WithNode(name ...string) DSBuilder {
 func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, error) {
 	log := logutil.FromContextOrDefault(ctx)
 
-	ds := &datastore{}
+	ds := &datastore{
+		readych: make(chan struct{}),
+		donech:  make(chan struct{}),
+	}
 
 	base, err := pod.NewController(ctx, log, cs, "")
 	if err != nil {
@@ -158,6 +163,9 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 		}
 	}
 
+	go ds.waitReadyAll()
+	go ds.waitDoneAll()
+
 	return ds, nil
 }
 
@@ -165,54 +173,77 @@ type datastore struct {
 	podBase      pod.Controller
 	servicesBase service.Controller
 	nodesBase    node.Controller
-	pods         pod.FilterController
-	services     service.Controller
-	nodes        node.Controller
+
+	pods     pod.Controller
+	services service.Controller
+	nodes    node.Controller
+
+	readych chan struct{}
+	donech  chan struct{}
+}
+
+func (ds *datastore) Pods() pod.Controller {
+	return ds.pods
 }
 
 func (ds *datastore) Ready() <-chan struct{} {
-	return ds.pods.Ready()
+	return ds.readych
+}
+
+func (ds *datastore) Done() <-chan struct{} {
+	return ds.donech
 }
 
 func (ds *datastore) Stop() {
 	ds.closeAll()
-	ds.waitAll()
+	<-ds.donech
+}
+
+func (ds *datastore) waitReadyAll() {
+	for _, c := range ds.controllers() {
+		select {
+		case <-c.Done():
+			return
+		case <-c.Ready():
+		}
+	}
+	close(ds.readych)
 }
 
 func (ds *datastore) closeAll() {
-	closeController(ds.podBase)
-	closeController(ds.servicesBase)
-	closeController(ds.nodesBase)
-	closeController(ds.pods)
-	closeController(ds.services)
-	closeController(ds.nodes)
+	for _, c := range ds.controllers() {
+		c.Close()
+	}
 }
 
-func (ds *datastore) waitAll() {
-	waitController(ds.podBase)
-	waitController(ds.servicesBase)
-	waitController(ds.nodesBase)
-	waitController(ds.pods)
-	waitController(ds.services)
-	waitController(ds.nodes)
+func (ds *datastore) waitDoneAll() {
+	for _, c := range ds.controllers() {
+		<-c.Done()
+	}
 }
 
-type closeable interface {
+func (ds *datastore) controllers() []cacheController {
+
+	potential := []cacheController{
+		ds.podBase,
+		ds.servicesBase,
+		ds.nodesBase,
+		ds.pods,
+		ds.services,
+		ds.nodes,
+	}
+
+	var existing []cacheController
+	for _, c := range potential {
+		if c != nil {
+			existing = append(existing, c)
+		}
+	}
+	return existing
+}
+
+type cacheController interface {
 	Close()
-}
-
-func closeController(controller closeable) {
-	if controller != nil {
-		controller.Close()
-	}
-}
-
-type doneable interface {
 	Done() <-chan struct{}
-}
-
-func waitController(controller doneable) {
-	if controller != nil {
-		<-controller.Done()
-	}
+	Ready() <-chan struct{}
 }
