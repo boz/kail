@@ -1,5 +1,5 @@
 FROM alpine
 
-ADD ./ktail-linux /ktail
+ADD ./kail-linux /kail
 
-ENTRYPOINT ./ktail
+ENTRYPOINT ./kail
