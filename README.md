@@ -1,4 +1,4 @@
-# kail: kubernetes tail
+# kail: kubernetes tail (wip)
 
 ```sh
 # view logs from all pods
