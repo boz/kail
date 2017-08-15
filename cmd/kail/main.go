@@ -181,11 +181,12 @@ func streamLogs(ctx context.Context, cs kubernetes.Interface, ds kail.DS) {
 	controller, err := kail.NewController(ctx, cs, ds.Pods())
 	kingpin.FatalIfError(err, "Error creating controller")
 
+	writer := kail.NewWriter(os.Stdout)
+
 	for {
 		select {
 		case ev := <-controller.Events():
-			fmt.Printf("%v/%v:%v\t", ev.Source().Namespace(), ev.Source().Name(), ev.Source().Container())
-			fmt.Println(ev.Log())
+			writer.Print(ev)
 		case <-controller.Done():
 			return
 		}

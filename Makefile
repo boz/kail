@@ -19,7 +19,7 @@ endif
 test:
 	govendor test +local
 
-test-full:
+test-full: build
 	govendor test -v -race +local
 
 image: build-linux

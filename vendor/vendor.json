@@ -127,6 +127,12 @@
 			"revisionTime": "2017-07-04T05:34:23Z"
 		},
 		{
+			"checksumSHA1": "aEU9IPbfuS1PWY2T26gn41y+feA=",
+			"path": "github.com/fatih/color",
+			"revision": "67c513e5729f918f5e69786686770c27141a4490",
+			"revisionTime": "2017-08-04T15:04:06Z"
+		},
+		{
 			"checksumSHA1": "ImX1uv6O09ggFeBPUJJ2nu7MPSA=",
 			"path": "github.com/ghodss/yaml",
 			"revision": "0ca9ea5df5451ffdf184b4428c902747c2c11cd7",
@@ -271,6 +277,18 @@
 			"path": "github.com/mailru/easyjson/jwriter",
 			"revision": "2f5df55504ebc322e4d52d34df6a1f5b503bf26d",
 			"revisionTime": "2017-06-24T19:09:26Z"
+		},
+		{
+			"checksumSHA1": "K57GHrtsJxATkt4DKIutGAszeTM=",
+			"path": "github.com/mattn/go-colorable",
+			"revision": "6df6d4d004b64986bbb0d1b25945f42b44787e90",
+			"revisionTime": "2017-08-11T04:30:54Z"
+		},
+		{
+			"checksumSHA1": "U6lX43KDDlNOn+Z0Yyww+ZzHfFo=",
+			"path": "github.com/mattn/go-isatty",
+			"revision": "fc9e8d8ef48496124e79ae0df75490096eccf6fe",
+			"revisionTime": "2017-03-22T23:44:13Z"
 		},
 		{
 			"checksumSHA1": "I5DMrLM0FpmvG81tAWZ3zoydBIo=",
