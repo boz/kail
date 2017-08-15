@@ -8,9 +8,11 @@ import (
 	"github.com/boz/kcache/nsname"
 	"github.com/boz/kcache/types/node"
 	"github.com/boz/kcache/types/pod"
+	"github.com/boz/kcache/types/replicaset"
 	"github.com/boz/kcache/types/replicationcontroller"
 	"github.com/boz/kcache/types/service"
 	"k8s.io/api/core/v1"
+	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -21,6 +23,7 @@ type DSBuilder interface {
 	WithService(id ...nsname.NSName) DSBuilder
 	WithNode(name ...string) DSBuilder
 	WithRC(id ...nsname.NSName) DSBuilder
+	WithRS(id ...nsname.NSName) DSBuilder
 
 	Create(ctx context.Context, cs kubernetes.Interface) (DS, error)
 }
@@ -39,6 +42,7 @@ type dsBuilder struct {
 	services   []nsname.NSName
 	nodes      []string
 	rcs        []nsname.NSName
+	rss        []nsname.NSName
 }
 
 func NewDSBuilder() DSBuilder {
@@ -74,6 +78,11 @@ func (b *dsBuilder) WithNode(name ...string) DSBuilder {
 
 func (b *dsBuilder) WithRC(id ...nsname.NSName) DSBuilder {
 	b.rcs = append(b.rcs, id...)
+	return b
+}
+
+func (b *dsBuilder) WithRS(id ...nsname.NSName) DSBuilder {
+	b.rss = append(b.rss, id...)
 	return b
 }
 
@@ -220,7 +229,52 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 
 		if _, err := replicationcontroller.NewMonitor(ds.rcs, handler); err != nil {
 			ds.closeAll()
-			return nil, log.Err(err, "rcs monitor")
+			return nil, log.Err(err, "rc monitor")
+		}
+	}
+
+	if len(b.rss) != 0 {
+		ds.rssBase, err = replicaset.NewController(ctx, log, cs, "")
+		if err != nil {
+			ds.closeAll()
+			return nil, log.Err(err, "rs base controller")
+		}
+
+		ds.rss, err = ds.rssBase.CloneWithFilter(filter.NSName(b.rss...))
+		if err != nil {
+			ds.closeAll()
+			return nil, log.Err(err, "rs controller")
+		}
+
+		pods, err := ds.pods.CloneWithFilter(filter.All())
+		if err != nil {
+			ds.closeAll()
+			return nil, log.Err(err, "rs filter")
+		}
+
+		ds.pods = pods
+
+		update := func(_ *v1beta1.ReplicaSet) {
+			objs, err := ds.rss.Cache().List()
+			if err == nil {
+				log.Err(err, "rs cache list")
+				return
+			}
+			pods.Refilter(replicaset.PodsFilter(objs...))
+		}
+
+		handler := replicaset.BuildHandler().
+			OnInitialize(func(objs []*v1beta1.ReplicaSet) {
+				pods.Refilter(replicaset.PodsFilter(objs...))
+			}).
+			OnCreate(update).
+			OnUpdate(update).
+			OnDelete(update).
+			Create()
+
+		if _, err := replicaset.NewMonitor(ds.rss, handler); err != nil {
+			ds.closeAll()
+			return nil, log.Err(err, "rs monitor")
 		}
 	}
 
@@ -235,11 +289,13 @@ type datastore struct {
 	servicesBase service.Controller
 	nodesBase    node.Controller
 	rcsBase      replicationcontroller.Controller
+	rssBase      replicaset.Controller
 
 	pods     pod.Controller
 	services service.Controller
 	nodes    node.Controller
 	rcs      replicationcontroller.Controller
+	rss      replicaset.Controller
 
 	readych chan struct{}
 	donech  chan struct{}
@@ -292,10 +348,12 @@ func (ds *datastore) controllers() []cacheController {
 		ds.servicesBase,
 		ds.nodesBase,
 		ds.rcsBase,
+		ds.rssBase,
 		ds.pods,
 		ds.services,
 		ds.nodes,
 		ds.rcs,
+		ds.rss,
 	}
 
 	var existing []cacheController

@@ -1,0 +1,24 @@
+---
+apiVersion: extensions/v1beta1
+kind: ReplicaSet
+metadata:
+  name: echors
+spec:
+  selector:
+    matchLabels:
+      component: echors
+  template:
+    metadata:
+      name: echors
+      labels:
+        component: echors
+    spec:
+      containers:
+      - name: busybox
+        image: busybox
+        command:
+        - /bin/sh
+        - "-c"
+        - while true; do date; sleep 1; done
+        ports:
+          - containerPort: 80

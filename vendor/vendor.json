@@ -91,6 +91,12 @@
 			"revisionTime": "2017-08-15T08:05:14Z"
 		},
 		{
+			"checksumSHA1": "HQmzV6ACx5TU53QEuFYsVVHcgXQ=",
+			"path": "github.com/boz/kcache/types/replicaset",
+			"revision": "57191975eb5c40df026b2f141f21492775e2d5e7",
+			"revisionTime": "2017-08-15T08:05:14Z"
+		},
+		{
 			"checksumSHA1": "H1CywbM6uH3hoEUrbu185emQXHI=",
 			"path": "github.com/boz/kcache/types/replicationcontroller",
 			"revision": "57191975eb5c40df026b2f141f21492775e2d5e7",
