@@ -22,6 +22,7 @@ var (
 	flagNs    = kingpin.Flag("ns", "namespace").PlaceHolder("NAMESPACE-NAME").Strings()
 	flagPod   = kingpin.Flag("pod", "pod").PlaceHolder("POD-NAME").Strings()
 	flagSvc   = kingpin.Flag("svc", "service").PlaceHolder("SERVICE-NAME").Strings()
+	flagRc    = kingpin.Flag("rc", "replication controller").PlaceHolder("RC-NAME").Strings()
 	flagNode  = kingpin.Flag("node", "node").PlaceHolder("NODE-NAME").Strings()
 	flagLabel = kingpin.Flag("label", "label").PlaceHolder("NAME=VALUE").Strings()
 
@@ -91,24 +92,8 @@ func createDSBuilder() kail.DSBuilder {
 		dsb = dsb.WithNamespace(*flagNs...)
 	}
 
-	if flagPod != nil {
-		var ids []nsname.NSName
-
-		for _, val := range *flagPod {
-			parts := strings.Split(val, "/")
-			switch len(parts) {
-			case 2:
-				ids = append(ids, nsname.New(parts[0], parts[1]))
-			case 1:
-				ids = append(ids, nsname.New("", parts[0]))
-			default:
-				kingpin.Fatalf("Invalid pod name: '%v'", val)
-			}
-		}
-
-		if len(ids) > 0 {
-			dsb = dsb.WithPods(ids...)
-		}
+	if ids := parseIds("pod", flagPod); len(ids) > 0 {
+		dsb = dsb.WithPods(ids...)
 	}
 
 	if flagLabel != nil {
@@ -127,28 +112,16 @@ func createDSBuilder() kail.DSBuilder {
 		}
 	}
 
-	if flagSvc != nil {
-		var ids []nsname.NSName
-
-		for _, val := range *flagSvc {
-			parts := strings.Split(val, "/")
-			switch len(parts) {
-			case 2:
-				ids = append(ids, nsname.New(parts[0], parts[1]))
-			case 1:
-				ids = append(ids, nsname.New("", parts[0]))
-			default:
-				kingpin.Fatalf("Invalid service name: '%v'", val)
-			}
-		}
-
-		if len(ids) > 0 {
-			dsb = dsb.WithService(ids...)
-		}
+	if ids := parseIds("service", flagSvc); len(ids) > 0 {
+		dsb = dsb.WithService(ids...)
 	}
 
 	if flagNode != nil {
 		dsb = dsb.WithNode(*flagNode...)
+	}
+
+	if ids := parseIds("rc", flagRc); len(ids) > 0 {
+		dsb = dsb.WithRC(ids...)
 	}
 
 	return dsb
@@ -195,4 +168,26 @@ func streamLogs(ctx context.Context, cs kubernetes.Interface, ds kail.DS) {
 			return
 		}
 	}
+}
+
+func parseIds(name string, vals *[]string) []nsname.NSName {
+	var ids []nsname.NSName
+
+	if vals == nil {
+		return ids
+	}
+
+	for _, val := range *vals {
+		parts := strings.Split(val, "/")
+		switch len(parts) {
+		case 2:
+			ids = append(ids, nsname.New(parts[0], parts[1]))
+		case 1:
+			ids = append(ids, nsname.New("", parts[0]))
+		default:
+			kingpin.Fatalf("Invalid %v name: '%v'", name, val)
+		}
+	}
+
+	return ids
 }

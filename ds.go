@@ -8,6 +8,7 @@ import (
 	"github.com/boz/kcache/nsname"
 	"github.com/boz/kcache/types/node"
 	"github.com/boz/kcache/types/pod"
+	"github.com/boz/kcache/types/replicationcontroller"
 	"github.com/boz/kcache/types/service"
 	"k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
@@ -19,6 +20,7 @@ type DSBuilder interface {
 	WithLabels(labels map[string]string) DSBuilder
 	WithService(id ...nsname.NSName) DSBuilder
 	WithNode(name ...string) DSBuilder
+	WithRC(id ...nsname.NSName) DSBuilder
 
 	Create(ctx context.Context, cs kubernetes.Interface) (DS, error)
 }
@@ -36,6 +38,7 @@ type dsBuilder struct {
 	labels     map[string]string
 	services   []nsname.NSName
 	nodes      []string
+	rcs        []nsname.NSName
 }
 
 func NewDSBuilder() DSBuilder {
@@ -66,6 +69,11 @@ func (b *dsBuilder) WithService(id ...nsname.NSName) DSBuilder {
 
 func (b *dsBuilder) WithNode(name ...string) DSBuilder {
 	b.nodes = append(b.nodes, name...)
+	return b
+}
+
+func (b *dsBuilder) WithRC(id ...nsname.NSName) DSBuilder {
+	b.rcs = append(b.rcs, id...)
 	return b
 }
 
@@ -171,6 +179,51 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 		}
 	}
 
+	if len(b.rcs) != 0 {
+		ds.rcsBase, err = replicationcontroller.NewController(ctx, log, cs, "")
+		if err != nil {
+			ds.closeAll()
+			return nil, log.Err(err, "rc base controller")
+		}
+
+		ds.rcs, err = ds.rcsBase.CloneWithFilter(filter.NSName(b.rcs...))
+		if err != nil {
+			ds.closeAll()
+			return nil, log.Err(err, "rc controller")
+		}
+
+		pods, err := ds.pods.CloneWithFilter(filter.All())
+		if err != nil {
+			ds.closeAll()
+			return nil, log.Err(err, "rc filter")
+		}
+
+		ds.pods = pods
+
+		update := func(_ *v1.ReplicationController) {
+			objs, err := ds.rcs.Cache().List()
+			if err == nil {
+				log.Err(err, "rc cache list")
+				return
+			}
+			pods.Refilter(replicationcontroller.PodsFilter(objs...))
+		}
+
+		handler := replicationcontroller.BuildHandler().
+			OnInitialize(func(objs []*v1.ReplicationController) {
+				pods.Refilter(replicationcontroller.PodsFilter(objs...))
+			}).
+			OnCreate(update).
+			OnUpdate(update).
+			OnDelete(update).
+			Create()
+
+		if _, err := replicationcontroller.NewMonitor(ds.rcs, handler); err != nil {
+			ds.closeAll()
+			return nil, log.Err(err, "rcs monitor")
+		}
+	}
+
 	go ds.waitReadyAll()
 	go ds.waitDoneAll()
 
@@ -181,10 +234,12 @@ type datastore struct {
 	podBase      pod.Controller
 	servicesBase service.Controller
 	nodesBase    node.Controller
+	rcsBase      replicationcontroller.Controller
 
 	pods     pod.Controller
 	services service.Controller
 	nodes    node.Controller
+	rcs      replicationcontroller.Controller
 
 	readych chan struct{}
 	donech  chan struct{}
@@ -236,9 +291,11 @@ func (ds *datastore) controllers() []cacheController {
 		ds.podBase,
 		ds.servicesBase,
 		ds.nodesBase,
+		ds.rcsBase,
 		ds.pods,
 		ds.services,
 		ds.nodes,
+		ds.rcs,
 	}
 
 	var existing []cacheController
