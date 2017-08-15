@@ -12,13 +12,14 @@ import (
 	"github.com/boz/kcache/types/replicaset"
 	"github.com/boz/kcache/types/replicationcontroller"
 	"github.com/boz/kcache/types/service"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
 )
 
 type DSBuilder interface {
 	WithNamespace(name ...string) DSBuilder
 	WithPods(id ...nsname.NSName) DSBuilder
-	WithLabels(labels map[string]string) DSBuilder
+	WithSelectors(selectors ...labels.Selector) DSBuilder
 	WithService(id ...nsname.NSName) DSBuilder
 	WithNode(name ...string) DSBuilder
 	WithRC(id ...nsname.NSName) DSBuilder
@@ -37,7 +38,7 @@ type DS interface {
 type dsBuilder struct {
 	namespaces []string
 	pods       []nsname.NSName
-	labels     map[string]string
+	selectors  []labels.Selector
 	services   []nsname.NSName
 	nodes      []string
 	rcs        []nsname.NSName
@@ -45,7 +46,7 @@ type dsBuilder struct {
 }
 
 func NewDSBuilder() DSBuilder {
-	return &dsBuilder{labels: make(map[string]string)}
+	return &dsBuilder{}
 }
 
 func (b *dsBuilder) WithNamespace(name ...string) DSBuilder {
@@ -58,10 +59,8 @@ func (b *dsBuilder) WithPods(id ...nsname.NSName) DSBuilder {
 	return b
 }
 
-func (b *dsBuilder) WithLabels(labels map[string]string) DSBuilder {
-	for k, v := range labels {
-		b.labels[k] = v
-	}
+func (b *dsBuilder) WithSelectors(selectors ...labels.Selector) DSBuilder {
+	b.selectors = append(b.selectors, selectors...)
 	return b
 }
 
@@ -126,8 +125,12 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 		}
 	}
 
-	if len(b.labels) != 0 {
-		ds.pods, err = ds.pods.CloneWithFilter(filter.Labels(b.labels))
+	if len(b.selectors) != 0 {
+		filters := make([]filter.Filter, 0, len(b.selectors))
+		for _, selector := range b.selectors {
+			filters = append(filters, filter.Selector(selector))
+		}
+		ds.pods, err = ds.pods.CloneWithFilter(filter.And(filters...))
 		if err != nil {
 			ds.closeAll()
 			return nil, log.Err(err, "labels filter")

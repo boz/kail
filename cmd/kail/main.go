@@ -15,6 +15,7 @@ import (
 	"github.com/sirupsen/logrus"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -98,18 +99,14 @@ func createDSBuilder() kail.DSBuilder {
 	}
 
 	if flagLabel != nil {
-		labels := make(map[string]string)
+		var selectors []labels.Selector
 		for _, val := range *flagLabel {
-			parts := strings.Split(val, "=")
-			switch len(parts) {
-			case 2:
-				labels[parts[0]] = parts[1]
-			default:
-				kingpin.Fatalf("Invalid label: '%v'", val)
-			}
+			selector, err := labels.Parse(val)
+			kingpin.FatalIfError(err, "Invalid expression: '%v'", val)
+			selectors = append(selectors, selector)
 		}
-		if len(labels) > 0 {
-			dsb = dsb.WithLabels(labels)
+		if len(selectors) > 0 {
+			dsb = dsb.WithSelectors(selectors...)
 		}
 	}
 

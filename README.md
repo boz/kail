@@ -27,8 +27,8 @@ $ kail --rc x
 # pods on node 'x'
 $ kail --node x
 
-# pod with labels 'x=y' and 'a=b'
-$ kail --label x=y --label a=b
+# pod with labels x=a, or x=b and y != z
+$ kail --label 'x in (a, b)' --label 'y != z'
 
 # pods controlled by replica set 'x', targeted by service 'y', on node 'z'
 $ kail --rs x --svc y --node z
