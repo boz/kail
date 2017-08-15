@@ -40,10 +40,10 @@ install-deps:
 	govendor sync
 
 release:
-	GITHUB_TOKEN=$$GITHUB_REPO_TOKEN goreleaser
+	GITHUB_TOKEN=$$GITHUB_REPO_TOKEN goreleaser -f .goreleaser.yml
 
 clean:
-	rm kail kail-linux 2>/dev/null || true
+	rm kail kail-linux dist 2>/dev/null || true
 
 .PHONY: build build-linux \
 	test test-full \
