@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"text/tabwriter"
 
 	logutil "github.com/boz/go-logutil"
 	logutil_logrus "github.com/boz/go-logutil/logrus"
 	"github.com/boz/kail"
+	"github.com/boz/kcache/nsname"
 	"github.com/boz/kcache/util"
 	"github.com/sirupsen/logrus"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
@@ -30,7 +32,7 @@ var (
 			OpenFile(os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
 
 	flagLogLevel = kingpin.Flag("log-level", "log level").
-			Default("warn").
+			Default("error").
 			Enum("debug", "info", "warn", "error")
 )
 
@@ -43,11 +45,7 @@ func main() {
 
 	cs := createKubeClient()
 
-	dsb := kail.NewDSBuilder()
-
-	if flagNs != nil {
-		dsb = dsb.WithNamespace(*flagNs...)
-	}
+	dsb := createDSBuilder()
 
 	ctx := logutil.NewContext(context.Background(), log)
 
@@ -88,6 +86,71 @@ func createKubeClient() kubernetes.Interface {
 	kingpin.FatalIfError(err, "Can't connnect to kubernetes")
 
 	return cs
+}
+
+func createDSBuilder() kail.DSBuilder {
+	dsb := kail.NewDSBuilder()
+	if flagNs != nil {
+		dsb = dsb.WithNamespace(*flagNs...)
+	}
+
+	if flagPod != nil {
+		var ids []nsname.NSName
+
+		for _, val := range *flagPod {
+			parts := strings.Split(val, "/")
+			switch len(parts) {
+			case 2:
+				ids = append(ids, nsname.New(parts[0], parts[1]))
+			case 1:
+				ids = append(ids, nsname.New("", parts[0]))
+			default:
+				kingpin.Fatalf("Invalid pod name: '%v'", val)
+			}
+		}
+
+		if len(ids) > 0 {
+			dsb = dsb.WithPods(ids...)
+		}
+	}
+
+	if flagLabel != nil {
+		labels := make(map[string]string)
+		for _, val := range *flagLabel {
+			parts := strings.Split(val, "=")
+			switch len(parts) {
+			case 2:
+				labels[parts[0]] = parts[1]
+			default:
+				kingpin.Fatalf("Invalid label: '%v'", val)
+			}
+		}
+		if len(labels) > 0 {
+			dsb = dsb.WithLabels(labels)
+		}
+	}
+
+	if flagSvc != nil {
+		var ids []nsname.NSName
+
+		for _, val := range *flagSvc {
+			parts := strings.Split(val, "/")
+			switch len(parts) {
+			case 2:
+				ids = append(ids, nsname.New(parts[0], parts[1]))
+			case 1:
+				ids = append(ids, nsname.New("", parts[0]))
+			default:
+				kingpin.Fatalf("Invalid service name: '%v'", val)
+			}
+		}
+
+		if len(ids) > 0 {
+			dsb = dsb.WithService(ids...)
+		}
+	}
+
+	return dsb
 }
 
 func createDS(ctx context.Context, cs kubernetes.Interface, dsb kail.DSBuilder) kail.DS {

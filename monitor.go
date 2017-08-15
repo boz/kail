@@ -83,9 +83,27 @@ func (m *_monitor) mainloop(ctx context.Context, donech chan struct{}) {
 	defer close(donech)
 	defer m.lc.Shutdown()
 
+	// todo: backoff
+
+	for ctx.Err() == nil {
+		err := m.readloop(ctx)
+		switch err {
+		case io.EOF:
+		case nil:
+		default:
+			m.log.ErrWarn(err, "error readloop")
+			return
+		}
+	}
+}
+
+func (m *_monitor) readloop(ctx context.Context) error {
+
+	since := int64(1)
 	opts := &v1.PodLogOptions{
-		Container: m.source.Container(),
-		Follow:    true,
+		Container:    m.source.Container(),
+		Follow:       true,
+		SinceSeconds: &since,
 	}
 
 	req := m.core.
@@ -96,22 +114,22 @@ func (m *_monitor) mainloop(ctx context.Context, donech chan struct{}) {
 
 	stream, err := req.Stream()
 	if err != nil {
-		m.log.Err(err, "error opening stream")
-		return
+		return m.log.Err(err, "error opening stream")
 	}
+
 	defer stream.Close()
 
 	logbuf := make([]byte, logBufsiz)
 	for ctx.Err() == nil {
 		nread, err := stream.Read(logbuf)
+
 		switch {
 		case err == io.EOF:
-			return
+			return err
 		case err != nil:
-			m.log.Err(err, "error while reading logs")
-			return
+			return m.log.Err(err, "error while reading logs")
 		case nread == 0:
-			return
+			return io.EOF
 		}
 
 		logs := string(logbuf[0:nread])
@@ -123,4 +141,5 @@ func (m *_monitor) mainloop(ctx context.Context, donech chan struct{}) {
 			m.log.Warnf("event buffer full. dropping logs %v", nread)
 		}
 	}
+	return nil
 }
