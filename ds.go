@@ -5,14 +5,13 @@ import (
 
 	logutil "github.com/boz/go-logutil"
 	"github.com/boz/kcache/filter"
+	"github.com/boz/kcache/join"
 	"github.com/boz/kcache/nsname"
 	"github.com/boz/kcache/types/node"
 	"github.com/boz/kcache/types/pod"
 	"github.com/boz/kcache/types/replicaset"
 	"github.com/boz/kcache/types/replicationcontroller"
 	"github.com/boz/kcache/types/service"
-	"k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -148,35 +147,10 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 			return nil, log.Err(err, "service controller")
 		}
 
-		pods, err := ds.pods.CloneWithFilter(filter.All())
+		ds.pods, err = join.ServicePods(ctx, ds.services, ds.pods)
 		if err != nil {
 			ds.closeAll()
-			return nil, log.Err(err, "services filter")
-		}
-
-		ds.pods = pods
-
-		update := func(_ *v1.Service) {
-			objs, err := ds.services.Cache().List()
-			if err == nil {
-				log.Err(err, "service cache list")
-				return
-			}
-			pods.Refilter(service.PodsFilter(objs...))
-		}
-
-		handler := service.BuildHandler().
-			OnInitialize(func(objs []*v1.Service) {
-				pods.Refilter(service.PodsFilter(objs...))
-			}).
-			OnCreate(update).
-			OnUpdate(update).
-			OnDelete(update).
-			Create()
-
-		if _, err := service.NewMonitor(ds.services, handler); err != nil {
-			ds.closeAll()
-			return nil, log.Err(err, "services monitor")
+			return nil, log.Err(err, "service join")
 		}
 	}
 
@@ -201,35 +175,10 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 			return nil, log.Err(err, "rc controller")
 		}
 
-		pods, err := ds.pods.CloneWithFilter(filter.All())
+		ds.pods, err = join.RCPods(ctx, ds.rcs, ds.pods)
 		if err != nil {
 			ds.closeAll()
-			return nil, log.Err(err, "rc filter")
-		}
-
-		ds.pods = pods
-
-		update := func(_ *v1.ReplicationController) {
-			objs, err := ds.rcs.Cache().List()
-			if err == nil {
-				log.Err(err, "rc cache list")
-				return
-			}
-			pods.Refilter(replicationcontroller.PodsFilter(objs...))
-		}
-
-		handler := replicationcontroller.BuildHandler().
-			OnInitialize(func(objs []*v1.ReplicationController) {
-				pods.Refilter(replicationcontroller.PodsFilter(objs...))
-			}).
-			OnCreate(update).
-			OnUpdate(update).
-			OnDelete(update).
-			Create()
-
-		if _, err := replicationcontroller.NewMonitor(ds.rcs, handler); err != nil {
-			ds.closeAll()
-			return nil, log.Err(err, "rc monitor")
+			return nil, log.Err(err, "rc join")
 		}
 	}
 
@@ -246,35 +195,10 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 			return nil, log.Err(err, "rs controller")
 		}
 
-		pods, err := ds.pods.CloneWithFilter(filter.All())
+		ds.pods, err = join.RSPods(ctx, ds.rss, ds.pods)
 		if err != nil {
 			ds.closeAll()
-			return nil, log.Err(err, "rs filter")
-		}
-
-		ds.pods = pods
-
-		update := func(_ *v1beta1.ReplicaSet) {
-			objs, err := ds.rss.Cache().List()
-			if err == nil {
-				log.Err(err, "rs cache list")
-				return
-			}
-			pods.Refilter(replicaset.PodsFilter(objs...))
-		}
-
-		handler := replicaset.BuildHandler().
-			OnInitialize(func(objs []*v1beta1.ReplicaSet) {
-				pods.Refilter(replicaset.PodsFilter(objs...))
-			}).
-			OnCreate(update).
-			OnUpdate(update).
-			OnDelete(update).
-			Create()
-
-		if _, err := replicaset.NewMonitor(ds.rss, handler); err != nil {
-			ds.closeAll()
-			return nil, log.Err(err, "rs monitor")
+			return nil, log.Err(err, "rs join")
 		}
 	}
 
