@@ -1,0 +1,19 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: echopod
+spec:
+  containers:
+  - name: dater
+    image: busybox
+    command:
+    - /bin/sh
+    - "-c"
+    - while true; do date; sleep 1; done
+  - name: dfer
+    image: busybox
+    command:
+    - /bin/sh
+    - "-c"
+    - while true; do df -h; sleep 5; done

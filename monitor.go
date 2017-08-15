@@ -24,7 +24,7 @@ type monitor interface {
 
 func newMonitor(c *controller, source EventSource) monitor {
 	lc := lifecycle.New()
-	lc.WatchContext(c.ctx)
+	go lc.WatchContext(c.ctx)
 
 	log := c.log.WithComponent(fmt.Sprintf("monitor %v/%v:%v", source.Namespace(), source.Name(), source.Container()))
 
@@ -62,6 +62,7 @@ func (m *_monitor) Done() <-chan struct{} {
 }
 
 func (m *_monitor) run() {
+	defer m.log.Un(m.log.Trace("run"))
 	defer m.lc.ShutdownCompleted()
 
 	ctx, cancel := context.WithCancel(m.ctx)
@@ -78,12 +79,18 @@ func (m *_monitor) run() {
 }
 
 func (m *_monitor) mainloop(ctx context.Context, donech chan struct{}) {
+	defer m.log.Un(m.log.Trace("mainloop"))
 	defer close(donech)
 	defer m.lc.Shutdown()
 
+	opts := &v1.PodLogOptions{
+		Container: m.source.Container(),
+		Follow:    true,
+	}
+
 	req := m.core.
 		Pods(m.source.Namespace()).
-		GetLogs(m.source.Container(), &v1.PodLogOptions{})
+		GetLogs(m.source.Name(), opts)
 
 	req = req.Context(ctx)
 
@@ -99,12 +106,12 @@ func (m *_monitor) mainloop(ctx context.Context, donech chan struct{}) {
 		nread, err := stream.Read(logbuf)
 		switch {
 		case err == io.EOF:
-			break
+			return
 		case err != nil:
 			m.log.Err(err, "error while reading logs")
-			break
+			return
 		case nread == 0:
-			break
+			return
 		}
 
 		logs := string(logbuf[0:nread])
@@ -113,7 +120,7 @@ func (m *_monitor) mainloop(ctx context.Context, donech chan struct{}) {
 		select {
 		case m.eventch <- event:
 		default:
-			m.log.Warnf("event buffer full. dropping logs")
+			m.log.Warnf("event buffer full. dropping logs %v", nread)
 		}
 	}
 }

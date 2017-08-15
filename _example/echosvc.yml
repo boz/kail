@@ -1,0 +1,31 @@
+---
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: echosvc
+spec:
+  template:
+    metadata:
+      name: echosvc
+      labels:
+        component: echosvc
+    spec:
+      containers:
+      - name: busybox
+        image: busybox
+        command:
+        - /bin/sh
+        - "-c"
+        - while true; do date; sleep 1; done
+        ports:
+          - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: echosvc
+spec:
+  selector:
+    component: echosvc
+  ports:
+    - port: 80

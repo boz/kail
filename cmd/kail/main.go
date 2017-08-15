@@ -55,6 +55,18 @@ func main() {
 
 	listPods(ds)
 
+	controller, err := kail.NewController(ctx, cs, ds.Pods())
+	kingpin.FatalIfError(err, "Error creating controller")
+
+	for {
+		select {
+		case ev := <-controller.Events():
+			fmt.Printf("%v/%v:%v\t", ev.Source().Namespace(), ev.Source().Name(), ev.Source().Container())
+			fmt.Println(ev.Log())
+		case <-controller.Done():
+			return
+		}
+	}
 }
 
 func createLog() logutil.Log {

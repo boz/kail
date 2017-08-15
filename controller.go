@@ -3,6 +3,7 @@ package kail
 import (
 	"context"
 
+	"k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
 
 	lifecycle "github.com/boz/go-lifecycle"
@@ -29,8 +30,14 @@ func NewController(ctx context.Context, cs kubernetes.Interface, pcontroller pod
 		return nil, err
 	}
 
+	initial, err := pods.Cache().List()
+	if err != nil {
+		pods.Close()
+		return nil, err
+	}
+
 	lc := lifecycle.New()
-	lc.WatchContext(ctx)
+	go lc.WatchContext(ctx)
 
 	log := logutil.FromContextOrDefault(ctx)
 
@@ -45,7 +52,7 @@ func NewController(ctx context.Context, cs kubernetes.Interface, pcontroller pod
 		lc:        lc,
 	}
 
-	go c.run()
+	go c.run(initial)
 
 	return c, nil
 }
@@ -76,12 +83,15 @@ func (c *controller) Stop() {
 	c.lc.Shutdown()
 }
 
-func (c *controller) run() {
+func (c *controller) run(initial []*v1.Pod) {
 	defer c.lc.ShutdownCompleted()
+	defer c.pods.Close()
 
 	peventch := c.pods.Events()
 	shutdownch := c.lc.ShutdownRequest()
 	draining := false
+
+	c.createInitialMonitors(initial)
 
 	for {
 
@@ -125,6 +135,11 @@ func (c *controller) handlePodEvent(ev pod.Event) {
 		return
 	}
 
+	c.ensureMonitorsForPod(pod)
+}
+
+func (c *controller) ensureMonitorsForPod(pod *v1.Pod) {
+	id := nsname.ForObject(pod)
 	sources := make(map[eventSource]bool)
 
 	for _, cstatus := range pod.Status.ContainerStatuses {
@@ -181,6 +196,12 @@ func (c *controller) createMonitor(source eventSource) monitor {
 		}
 	}()
 	return m
+}
+
+func (c *controller) createInitialMonitors(pods []*v1.Pod) {
+	for _, pod := range pods {
+		c.ensureMonitorsForPod(pod)
+	}
 }
 
 type podMonitors map[eventSource]monitor
