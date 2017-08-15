@@ -1,4 +1,6 @@
-# kail: kubernetes tail (wip)
+# kail: kubernetes tail [![Build Status](https://travis-ci.org/boz/kail.svg?branch=master)](https://travis-ci.org/boz/kail)
+
+wip
 
 ```sh
 # view logs from all pods
