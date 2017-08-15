@@ -163,6 +163,14 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 		}
 	}
 
+	if len(b.nodes) != 0 {
+		ds.pods, err = ds.pods.CloneWithFilter(pod.NodeFilter(b.nodes...))
+		if err != nil {
+			ds.closeAll()
+			return nil, log.Err(err, "node filter")
+		}
+	}
+
 	go ds.waitReadyAll()
 	go ds.waitDoneAll()
 

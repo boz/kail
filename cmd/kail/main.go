@@ -19,10 +19,10 @@ import (
 )
 
 var (
-	flagNs    = kingpin.Flag("ns", "namespace").Strings()
-	flagPod   = kingpin.Flag("pod", "pod").Strings()
-	flagSvc   = kingpin.Flag("svc", "service").Strings()
-	flagNode  = kingpin.Flag("node", "node").Strings()
+	flagNs    = kingpin.Flag("ns", "namespace").PlaceHolder("NAMESPACE-NAME").Strings()
+	flagPod   = kingpin.Flag("pod", "pod").PlaceHolder("POD-NAME").Strings()
+	flagSvc   = kingpin.Flag("svc", "service").PlaceHolder("SERVICE-NAME").Strings()
+	flagNode  = kingpin.Flag("node", "node").PlaceHolder("NODE-NAME").Strings()
 	flagLabel = kingpin.Flag("label", "label").PlaceHolder("NAME=VALUE").Strings()
 
 	flagDryRun = kingpin.Flag("dry-run", "print matching pods and exit").
@@ -145,6 +145,10 @@ func createDSBuilder() kail.DSBuilder {
 		if len(ids) > 0 {
 			dsb = dsb.WithService(ids...)
 		}
+	}
+
+	if flagNode != nil {
+		dsb = dsb.WithNode(*flagNode...)
 	}
 
 	return dsb
