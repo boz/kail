@@ -27,7 +27,7 @@ type DS interface {
 	Pods() pod.Controller
 	Ready() <-chan struct{}
 	Done() <-chan struct{}
-	Stop()
+	Shutdown()
 }
 
 type dsBuilder struct {
@@ -194,9 +194,8 @@ func (ds *datastore) Done() <-chan struct{} {
 	return ds.donech
 }
 
-func (ds *datastore) Stop() {
+func (ds *datastore) Shutdown() {
 	ds.closeAll()
-	<-ds.donech
 }
 
 func (ds *datastore) waitReadyAll() {
@@ -217,6 +216,7 @@ func (ds *datastore) closeAll() {
 }
 
 func (ds *datastore) waitDoneAll() {
+	defer close(ds.donech)
 	for _, c := range ds.controllers() {
 		<-c.Done()
 	}

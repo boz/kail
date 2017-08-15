@@ -25,7 +25,9 @@ var (
 	flagNode  = kingpin.Flag("node", "node").Strings()
 	flagLabel = kingpin.Flag("label", "label").PlaceHolder("NAME=VALUE").Strings()
 
-	flagDryRun = kingpin.Flag("dry-run", "print matching pods and exit").Bool()
+	flagDryRun = kingpin.Flag("dry-run", "print matching pods and exit").
+			Default("false").
+			Bool()
 
 	flagLogFile = kingpin.Flag("log-file", "log file output").
 			Default("/dev/stderr").
@@ -53,18 +55,13 @@ func main() {
 
 	listPods(ds)
 
-	controller, err := kail.NewController(ctx, cs, ds.Pods())
-	kingpin.FatalIfError(err, "Error creating controller")
-
-	for {
-		select {
-		case ev := <-controller.Events():
-			fmt.Printf("%v/%v:%v\t", ev.Source().Namespace(), ev.Source().Name(), ev.Source().Container())
-			fmt.Println(ev.Log())
-		case <-controller.Done():
-			return
-		}
+	if !*flagDryRun {
+		streamLogs(ctx, cs, ds)
+		return
 	}
+
+	ds.Shutdown()
+	<-ds.Done()
 }
 
 func createLog() logutil.Log {
@@ -178,4 +175,19 @@ func listPods(ds kail.DS) {
 	}
 
 	w.Flush()
+}
+
+func streamLogs(ctx context.Context, cs kubernetes.Interface, ds kail.DS) {
+	controller, err := kail.NewController(ctx, cs, ds.Pods())
+	kingpin.FatalIfError(err, "Error creating controller")
+
+	for {
+		select {
+		case ev := <-controller.Events():
+			fmt.Printf("%v/%v:%v\t", ev.Source().Namespace(), ev.Source().Name(), ev.Source().Container())
+			fmt.Println(ev.Log())
+		case <-controller.Done():
+			return
+		}
+	}
 }
