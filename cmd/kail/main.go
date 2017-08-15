@@ -54,6 +54,7 @@ func main() {
 	ds := createDS(ctx, cs, dsb)
 
 	listPods(ds)
+
 }
 
 func createLog() logutil.Log {
