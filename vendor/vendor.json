@@ -49,6 +49,12 @@
 			"revisionTime": "2017-08-14T04:00:38Z"
 		},
 		{
+			"checksumSHA1": "RbrHd5G9zza4sHNZ77AMjZoOCSQ=",
+			"path": "github.com/boz/go-logutil/logrus",
+			"revision": "9d21a9e4757dbc497f947fe5253f9570c34562fa",
+			"revisionTime": "2017-08-14T04:00:38Z"
+		},
+		{
 			"checksumSHA1": "3diAMgj9b35BDoCRkc5TAx4lJRw=",
 			"path": "github.com/boz/kcache",
 			"revision": "3488c40446b6cb3b2053276603eed43f886e6290",
@@ -125,6 +131,10 @@
 			"path": "github.com/ghodss/yaml",
 			"revision": "0ca9ea5df5451ffdf184b4428c902747c2c11cd7",
 			"revisionTime": "2017-03-27T23:54:44Z"
+		},
+		{
+			"path": "github.com/go-logutil/logrus",
+			"revision": ""
 		},
 		{
 			"checksumSHA1": "6dTGC5A1Y1xnv+JSi9z8S6JfnH0=",
@@ -261,6 +271,12 @@
 			"path": "github.com/mailru/easyjson/jwriter",
 			"revision": "2f5df55504ebc322e4d52d34df6a1f5b503bf26d",
 			"revisionTime": "2017-06-24T19:09:26Z"
+		},
+		{
+			"checksumSHA1": "I5DMrLM0FpmvG81tAWZ3zoydBIo=",
+			"path": "github.com/sirupsen/logrus",
+			"revision": "181d419aa9e2223811b824e8f0b4af96f9ba9302",
+			"revisionTime": "2017-07-28T07:42:14Z"
 		},
 		{
 			"checksumSHA1": "STxYqRb4gnlSr3mRpT+Igfdz/kM=",

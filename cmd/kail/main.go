@@ -6,8 +6,11 @@ import (
 	"os"
 	"text/tabwriter"
 
+	logutil "github.com/boz/go-logutil"
+	logutil_logrus "github.com/boz/go-logutil/logrus"
 	"github.com/boz/kail"
 	"github.com/boz/kcache/util"
+	"github.com/sirupsen/logrus"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -21,6 +24,14 @@ var (
 	flagLabel = kingpin.Flag("label", "label").PlaceHolder("NAME=VALUE").Strings()
 
 	flagDryRun = kingpin.Flag("dry-run", "print matching pods and exit").Bool()
+
+	flagLogFile = kingpin.Flag("log-file", "log file output").
+			Default("/dev/stderr").
+			OpenFile(os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
+
+	flagLogLevel = kingpin.Flag("log-level", "log level").
+			Default("warn").
+			Enum("debug", "info", "warn", "error")
 )
 
 func main() {
@@ -28,7 +39,9 @@ func main() {
 	kingpin.CommandLine.Help = "Tail for kubernetes pods"
 	kingpin.Parse()
 
-	cs := kubeClient()
+	log := createLog()
+
+	cs := createKubeClient()
 
 	dsb := kail.NewDSBuilder()
 
@@ -36,13 +49,25 @@ func main() {
 		dsb = dsb.WithNamespace(*flagNs...)
 	}
 
-	ds := createDS(cs, dsb)
+	ctx := logutil.NewContext(context.Background(), log)
+
+	ds := createDS(ctx, cs, dsb)
 
 	listPods(ds)
-
 }
 
-func kubeClient() kubernetes.Interface {
+func createLog() logutil.Log {
+	lvl, err := logrus.ParseLevel(*flagLogLevel)
+	kingpin.FatalIfError(err, "Invalid log level")
+
+	parent := logrus.New()
+	parent.Level = lvl
+	parent.Out = *flagLogFile
+
+	return logutil_logrus.New(parent)
+}
+
+func createKubeClient() kubernetes.Interface {
 	cs, _, err := util.KubeClient()
 	kingpin.FatalIfError(err, "Error configuring kubernetes connection")
 
@@ -52,8 +77,7 @@ func kubeClient() kubernetes.Interface {
 	return cs
 }
 
-func createDS(cs kubernetes.Interface, dsb kail.DSBuilder) kail.DS {
-	ctx := context.Background()
+func createDS(ctx context.Context, cs kubernetes.Interface, dsb kail.DSBuilder) kail.DS {
 	ds, err := dsb.Create(ctx, cs)
 	kingpin.FatalIfError(err, "Error creating datasource")
 
