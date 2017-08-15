@@ -1,0 +1,18 @@
+build:
+  main: cmd/kail/main.go
+  binary: kail
+  goos:
+    - darwin
+    - linux
+  goarch:
+    - amd64
+
+release:
+  draft: false
+
+brew:
+  github:
+    owner: boz
+    name: homebrew-repo
+  homepage: "https://github.com/boz/kail"
+  description: "kubernetes tail - pod log viewer"

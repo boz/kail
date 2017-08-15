@@ -39,6 +39,9 @@ install-deps:
 	go get github.com/kardianos/govendor
 	govendor sync
 
+release:
+	GITHUB_TOKEN=$$GITHUB_REPO_TOKEN goreleaser
+
 clean:
 	rm kail kail-linux 2>/dev/null || true
 
