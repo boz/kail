@@ -1,14 +1,14 @@
 # kail: kubernetes tail [![Build Status](https://travis-ci.org/boz/kail.svg?branch=master)](https://travis-ci.org/boz/kail)
 
-Kubernetes tail.  Streams logs from all containers of all matched pods.
+Kubernetes tail.  Streams logs from all containers of all matched pods.  Match pods by service, replicaset, deployment, and others.  Adjusts to a changing cluster - pods are added and removed from logging as they fall in or out of the selection.
 
 [![asciicast](https://asciinema.org/a/133521.png)](https://asciinema.org/a/133521)
-
-Kail reacts to a changing cluster and will pick up any new matching pods that are created.  Logs from pods that fall out of selection are removed from the output while the rest continue.
 
 ## Usage
 
 With no arguments, kail matches all pods in the cluster.  You can control the matching pods with arguments which select pods based on various criteria.
+
+### Selectors
 
 Flag | Selection
 --- | ---
@@ -21,8 +21,9 @@ Flag | Selection
 `--deploy NAME` | match pods belonging to the given deployment
 `--node NODE-NAME` | match pods running on the given node
 `--containers CONTAINER-NAME` | restrict which containers logs are shown for
+`--ignore LABEL-SELECTOR` | Ignore pods that the selector matches. (default: `kail.ignore=true`)
 
-### Name Selection
+#### Name Selection
 
 When selecting objects by `NAME` (`--svc`, `--pod`, etc...), you can either qualify it with a namespace to restrict the selection to the given namespace, or select across all namespaces by giving just the object name.
 
@@ -36,7 +37,7 @@ $ kail --rs workers
 $ kail --rs staging/workers
 ```
 
-### Combining Selectors
+#### Combining Selectors
 
 If the same flag is used more than once, the selectors for that flag are "OR"ed together.
 
@@ -51,6 +52,16 @@ Different flags are "AND"ed together:
 # match pods belonging to both the service "frontend" and the deployment "webapp"
 $ kail --svc frontend --deploy webapp
 ```
+
+### Other Flags
+
+Flag | Description
+--- | ---
+`--help` | Display help and usage
+`--context CONTEXT-NAME` | Use the given Kubernetes context
+`--dry-run` | Print initial matched pods and exit
+`--log-level LEVEL` | Set the logging level (default: `error`)
+`--log-file PATH` | Write output to `PATH` (default: `/dev/stderr`)
 
 ## Installing
 
