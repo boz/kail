@@ -55,70 +55,82 @@
 			"revisionTime": "2017-08-14T04:00:38Z"
 		},
 		{
-			"checksumSHA1": "z+hNYqJkg75KsND7iNGtwas5RAA=",
+			"checksumSHA1": "MTH+ZMsTbcZInzBxH6cBUcietJ8=",
 			"path": "github.com/boz/kcache",
-			"revision": "67901d8ddba8075cc04231bfcc0687cddc162813",
-			"revisionTime": "2017-08-15T23:11:18Z"
+			"revision": "bb0c2390fce7c75b4db23860e79b55878b60a0a7",
+			"revisionTime": "2017-08-15T23:55:34Z"
 		},
 		{
 			"checksumSHA1": "RGlf5AzjJwJDpwCJWUZKRX+lfgw=",
 			"path": "github.com/boz/kcache/client",
-			"revision": "67901d8ddba8075cc04231bfcc0687cddc162813",
-			"revisionTime": "2017-08-15T23:11:18Z"
+			"revision": "bb0c2390fce7c75b4db23860e79b55878b60a0a7",
+			"revisionTime": "2017-08-15T23:55:34Z"
 		},
 		{
 			"checksumSHA1": "Ft8EiAxi5cIUzVsPHUPLp1eE6+Q=",
 			"path": "github.com/boz/kcache/filter",
-			"revision": "67901d8ddba8075cc04231bfcc0687cddc162813",
-			"revisionTime": "2017-08-15T23:11:18Z"
+			"revision": "bb0c2390fce7c75b4db23860e79b55878b60a0a7",
+			"revisionTime": "2017-08-15T23:55:34Z"
 		},
 		{
-			"checksumSHA1": "EBpz91FDT+YSVV+QwNuORwqahv4=",
+			"checksumSHA1": "a2Z8yzTfbPbPubiU07q652qGuuM=",
 			"path": "github.com/boz/kcache/join",
-			"revision": "67901d8ddba8075cc04231bfcc0687cddc162813",
-			"revisionTime": "2017-08-15T23:11:18Z"
+			"revision": "bb0c2390fce7c75b4db23860e79b55878b60a0a7",
+			"revisionTime": "2017-08-15T23:55:34Z"
 		},
 		{
 			"checksumSHA1": "cVUF28ARwaKHooP4gpYjH9+TMmc=",
 			"path": "github.com/boz/kcache/nsname",
-			"revision": "67901d8ddba8075cc04231bfcc0687cddc162813",
-			"revisionTime": "2017-08-15T23:11:18Z"
+			"revision": "bb0c2390fce7c75b4db23860e79b55878b60a0a7",
+			"revisionTime": "2017-08-15T23:55:34Z"
+		},
+		{
+			"checksumSHA1": "LLPh76DEtyGTFSzdtyDNG9wVc6o=",
+			"path": "github.com/boz/kcache/types/daemonset",
+			"revision": "bb0c2390fce7c75b4db23860e79b55878b60a0a7",
+			"revisionTime": "2017-08-15T23:55:34Z"
+		},
+		{
+			"checksumSHA1": "YCva3SLoR0G2EWSJrmQdnLrwa/k=",
+			"path": "github.com/boz/kcache/types/deployment",
+			"revision": "bb0c2390fce7c75b4db23860e79b55878b60a0a7",
+			"revisionTime": "2017-08-15T23:55:34Z"
 		},
 		{
 			"checksumSHA1": "qGyOw78D3ReTEqlAYOID7kmv/54=",
 			"path": "github.com/boz/kcache/types/node",
-			"revision": "67901d8ddba8075cc04231bfcc0687cddc162813",
-			"revisionTime": "2017-08-15T23:11:18Z"
+			"revision": "bb0c2390fce7c75b4db23860e79b55878b60a0a7",
+			"revisionTime": "2017-08-15T23:55:34Z"
 		},
 		{
 			"checksumSHA1": "YwjQRO3f2HS0v+1QTvjfzuqLuVY=",
 			"path": "github.com/boz/kcache/types/pod",
-			"revision": "67901d8ddba8075cc04231bfcc0687cddc162813",
-			"revisionTime": "2017-08-15T23:11:18Z"
+			"revision": "bb0c2390fce7c75b4db23860e79b55878b60a0a7",
+			"revisionTime": "2017-08-15T23:55:34Z"
 		},
 		{
 			"checksumSHA1": "Zw3JhS3LsYifU6pKQmPB40qlFcY=",
 			"path": "github.com/boz/kcache/types/replicaset",
-			"revision": "67901d8ddba8075cc04231bfcc0687cddc162813",
-			"revisionTime": "2017-08-15T23:11:18Z"
+			"revision": "bb0c2390fce7c75b4db23860e79b55878b60a0a7",
+			"revisionTime": "2017-08-15T23:55:34Z"
 		},
 		{
 			"checksumSHA1": "H1CywbM6uH3hoEUrbu185emQXHI=",
 			"path": "github.com/boz/kcache/types/replicationcontroller",
-			"revision": "67901d8ddba8075cc04231bfcc0687cddc162813",
-			"revisionTime": "2017-08-15T23:11:18Z"
+			"revision": "bb0c2390fce7c75b4db23860e79b55878b60a0a7",
+			"revisionTime": "2017-08-15T23:55:34Z"
 		},
 		{
 			"checksumSHA1": "Qu+4+QsMlwBMVPidPoJqlTFyFIM=",
 			"path": "github.com/boz/kcache/types/service",
-			"revision": "67901d8ddba8075cc04231bfcc0687cddc162813",
-			"revisionTime": "2017-08-15T23:11:18Z"
+			"revision": "bb0c2390fce7c75b4db23860e79b55878b60a0a7",
+			"revisionTime": "2017-08-15T23:55:34Z"
 		},
 		{
 			"checksumSHA1": "hvQV7lHc5IoAGsNQRuO+19v9n1A=",
 			"path": "github.com/boz/kcache/util",
-			"revision": "67901d8ddba8075cc04231bfcc0687cddc162813",
-			"revisionTime": "2017-08-15T23:11:18Z"
+			"revision": "bb0c2390fce7c75b4db23860e79b55878b60a0a7",
+			"revisionTime": "2017-08-15T23:55:34Z"
 		},
 		{
 			"checksumSHA1": "mrz/kicZiUaHxkyfvC/DyQcr8Do=",

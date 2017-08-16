@@ -7,6 +7,8 @@ import (
 	"github.com/boz/kcache/filter"
 	"github.com/boz/kcache/join"
 	"github.com/boz/kcache/nsname"
+	"github.com/boz/kcache/types/daemonset"
+	"github.com/boz/kcache/types/deployment"
 	"github.com/boz/kcache/types/node"
 	"github.com/boz/kcache/types/pod"
 	"github.com/boz/kcache/types/replicaset"
@@ -24,6 +26,8 @@ type DSBuilder interface {
 	WithNode(name ...string) DSBuilder
 	WithRC(id ...nsname.NSName) DSBuilder
 	WithRS(id ...nsname.NSName) DSBuilder
+	WithDS(id ...nsname.NSName) DSBuilder
+	WithDeployment(id ...nsname.NSName) DSBuilder
 
 	Create(ctx context.Context, cs kubernetes.Interface) (DS, error)
 }
@@ -36,13 +40,15 @@ type DS interface {
 }
 
 type dsBuilder struct {
-	namespaces []string
-	pods       []nsname.NSName
-	selectors  []labels.Selector
-	services   []nsname.NSName
-	nodes      []string
-	rcs        []nsname.NSName
-	rss        []nsname.NSName
+	namespaces  []string
+	pods        []nsname.NSName
+	selectors   []labels.Selector
+	services    []nsname.NSName
+	nodes       []string
+	rcs         []nsname.NSName
+	rss         []nsname.NSName
+	dss         []nsname.NSName
+	deployments []nsname.NSName
 }
 
 func NewDSBuilder() DSBuilder {
@@ -81,6 +87,16 @@ func (b *dsBuilder) WithRC(id ...nsname.NSName) DSBuilder {
 
 func (b *dsBuilder) WithRS(id ...nsname.NSName) DSBuilder {
 	b.rss = append(b.rss, id...)
+	return b
+}
+
+func (b *dsBuilder) WithDS(id ...nsname.NSName) DSBuilder {
+	b.dss = append(b.dss, id...)
+	return b
+}
+
+func (b *dsBuilder) WithDeployment(id ...nsname.NSName) DSBuilder {
+	b.deployments = append(b.deployments, id...)
 	return b
 }
 
@@ -137,6 +153,14 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 		}
 	}
 
+	if len(b.nodes) != 0 {
+		ds.pods, err = ds.pods.CloneWithFilter(pod.NodeFilter(b.nodes...))
+		if err != nil {
+			ds.closeAll()
+			return nil, log.Err(err, "node filter")
+		}
+	}
+
 	if len(b.services) != 0 {
 		ds.servicesBase, err = service.NewController(ctx, log, cs, "")
 		if err != nil {
@@ -154,14 +178,6 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 		if err != nil {
 			ds.closeAll()
 			return nil, log.Err(err, "service join")
-		}
-	}
-
-	if len(b.nodes) != 0 {
-		ds.pods, err = ds.pods.CloneWithFilter(pod.NodeFilter(b.nodes...))
-		if err != nil {
-			ds.closeAll()
-			return nil, log.Err(err, "node filter")
 		}
 	}
 
@@ -205,6 +221,46 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 		}
 	}
 
+	if len(b.dss) != 0 {
+		ds.dssBase, err = daemonset.NewController(ctx, log, cs, "")
+		if err != nil {
+			ds.closeAll()
+			return nil, log.Err(err, "ds base controller")
+		}
+
+		ds.dss, err = ds.dssBase.CloneWithFilter(filter.NSName(b.dss...))
+		if err != nil {
+			ds.closeAll()
+			return nil, log.Err(err, "ds controller")
+		}
+
+		ds.pods, err = join.DaemonSetPods(ctx, ds.dss, ds.pods)
+		if err != nil {
+			ds.closeAll()
+			return nil, log.Err(err, "ds join")
+		}
+	}
+
+	if len(b.deployments) != 0 {
+		ds.deploymentsBase, err = deployment.NewController(ctx, log, cs, "")
+		if err != nil {
+			ds.closeAll()
+			return nil, log.Err(err, "deployment base controller")
+		}
+
+		ds.deployments, err = ds.deploymentsBase.CloneWithFilter(filter.NSName(b.deployments...))
+		if err != nil {
+			ds.closeAll()
+			return nil, log.Err(err, "deployment controller")
+		}
+
+		ds.pods, err = join.DeploymentPods(ctx, ds.deployments, ds.pods)
+		if err != nil {
+			ds.closeAll()
+			return nil, log.Err(err, "deployment join")
+		}
+	}
+
 	go ds.waitReadyAll()
 	go ds.waitDoneAll()
 
@@ -212,17 +268,21 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 }
 
 type datastore struct {
-	podBase      pod.Controller
-	servicesBase service.Controller
-	nodesBase    node.Controller
-	rcsBase      replicationcontroller.Controller
-	rssBase      replicaset.Controller
+	podBase         pod.Controller
+	servicesBase    service.Controller
+	nodesBase       node.Controller
+	rcsBase         replicationcontroller.Controller
+	rssBase         replicaset.Controller
+	dssBase         daemonset.Controller
+	deploymentsBase deployment.Controller
 
-	pods     pod.Controller
-	services service.Controller
-	nodes    node.Controller
-	rcs      replicationcontroller.Controller
-	rss      replicaset.Controller
+	pods        pod.Controller
+	services    service.Controller
+	nodes       node.Controller
+	rcs         replicationcontroller.Controller
+	rss         replicaset.Controller
+	dss         daemonset.Controller
+	deployments deployment.Controller
 
 	readych chan struct{}
 	donech  chan struct{}
@@ -276,11 +336,15 @@ func (ds *datastore) controllers() []cacheController {
 		ds.nodesBase,
 		ds.rcsBase,
 		ds.rssBase,
+		ds.dssBase,
+		ds.deploymentsBase,
 		ds.pods,
 		ds.services,
 		ds.nodes,
 		ds.rcs,
 		ds.rss,
+		ds.dss,
+		ds.deployments,
 	}
 
 	var existing []cacheController

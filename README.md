@@ -24,6 +24,12 @@ $ kail --rc x
 # pods controled by replica set 'x'
 $ kail --rc x
 
+# pods for deployment 'x'
+$ kail --deploy x
+
+# pods for daemonset 'x'
+$ kail --ds x
+
 # pods on node 'x'
 $ kail --node x
 

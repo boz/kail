@@ -20,13 +20,15 @@ import (
 )
 
 var (
-	flagNs    = kingpin.Flag("ns", "namespace").PlaceHolder("NAME").Strings()
-	flagPod   = kingpin.Flag("pod", "pod").PlaceHolder("NAME").Strings()
-	flagSvc   = kingpin.Flag("svc", "service").PlaceHolder("NAME").Strings()
-	flagRc    = kingpin.Flag("rc", "replication controller").PlaceHolder("NAME").Strings()
-	flagRs    = kingpin.Flag("rs", "replica set").PlaceHolder("NAME").Strings()
-	flagNode  = kingpin.Flag("node", "node").PlaceHolder("NAME").Strings()
-	flagLabel = kingpin.Flag("label", "label").PlaceHolder("NAME=VALUE").Strings()
+	flagNs         = kingpin.Flag("ns", "namespace").PlaceHolder("NAME").Strings()
+	flagPod        = kingpin.Flag("pod", "pod").PlaceHolder("NAME").Strings()
+	flagSvc        = kingpin.Flag("svc", "service").PlaceHolder("NAME").Strings()
+	flagRc         = kingpin.Flag("rc", "replication controller").PlaceHolder("NAME").Strings()
+	flagRs         = kingpin.Flag("rs", "replica set").PlaceHolder("NAME").Strings()
+	flagDs         = kingpin.Flag("ds", "daemonset").PlaceHolder("NAME").Strings()
+	flagDeployment = kingpin.Flag("deploy", "deployment").PlaceHolder("NAME").Strings()
+	flagNode       = kingpin.Flag("node", "node").PlaceHolder("NAME").Strings()
+	flagLabel      = kingpin.Flag("label", "label").PlaceHolder("NAME=VALUE").Strings()
 
 	flagDryRun = kingpin.Flag("dry-run", "print matching pods and exit").
 			Default("false").
@@ -124,6 +126,14 @@ func createDSBuilder() kail.DSBuilder {
 
 	if ids := parseIds("rs", flagRs); len(ids) > 0 {
 		dsb = dsb.WithRS(ids...)
+	}
+
+	if ids := parseIds("ds", flagDs); len(ids) > 0 {
+		dsb = dsb.WithDS(ids...)
+	}
+
+	if ids := parseIds("deploy", flagDeployment); len(ids) > 0 {
+		dsb = dsb.WithDeployment(ids...)
 	}
 
 	return dsb
