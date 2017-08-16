@@ -10,9 +10,6 @@ build:
 release:
   draft: false
 
-archive:
-  format: binary
-
 brew:
   github:
     owner: boz
