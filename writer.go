@@ -37,14 +37,14 @@ func (w *writer) Fprint(out io.Writer, ev Event) error {
 	if _, err := prefixColor.Fprint(out, ": "); err != nil {
 		return err
 	}
-	if _, err := out.Write([]byte(ev.Log())); err != nil {
+	if _, err := out.Write(ev.Log()); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (w *writer) prefix(ev Event) string {
-	return fmt.Sprintf("%v/%v@%v",
+	return fmt.Sprintf("%v/%v[%v]",
 		ev.Source().Namespace(),
 		ev.Source().Name(),
 		ev.Source().Container())

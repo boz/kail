@@ -42,22 +42,22 @@ func (es eventSource) String() string {
 
 type Event interface {
 	Source() EventSource
-	Log() string
+	Log() []byte
 }
 
-func newEvent(source EventSource, log string) Event {
+func newEvent(source EventSource, log []byte) Event {
 	return &event{source, log}
 }
 
 type event struct {
 	source EventSource
-	log    string
+	log    []byte
 }
 
 func (e *event) Source() EventSource {
 	return e.source
 }
 
-func (e *event) Log() string {
+func (e *event) Log() []byte {
 	return e.log
 }

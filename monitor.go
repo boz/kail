@@ -140,8 +140,7 @@ func (m *_monitor) readloop(ctx context.Context) error {
 			return io.EOF
 		}
 
-		logs := string(logbuf[0:nread])
-		event := newEvent(m.source, logs)
+		event := newEvent(m.source, logbuf[0:nread])
 
 		select {
 		case m.eventch <- event:
