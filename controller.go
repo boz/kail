@@ -84,6 +84,7 @@ func (c *controller) Stop() {
 }
 
 func (c *controller) run(initial []*v1.Pod) {
+	defer c.log.Un(c.log.Trace("run"))
 	defer c.lc.ShutdownCompleted()
 	defer c.pods.Close()
 
@@ -115,6 +116,7 @@ func (c *controller) run(initial []*v1.Pod) {
 			c.handlePodEvent(ev)
 
 		case source := <-c.monitorch:
+			c.log.Debugf("removing source %v", source)
 			if pms, ok := c.monitors[source.id]; ok {
 				delete(pms, source)
 			}
@@ -152,10 +154,14 @@ func (c *controller) ensureMonitorsForPod(pod *v1.Pod) {
 		}
 	}
 
+	c.log.Debugf("pod %v/%v: %v containers ready",
+		pod.GetNamespace(), pod.GetName(), len(sources))
+
 	// delete monitors of not-ready containers
 	if pms, ok := c.monitors[id]; ok {
 		for source, pm := range pms {
 			if !sources[source] {
+				c.log.Debugf("shutting down %v", source)
 				pm.Shutdown()
 			}
 		}
@@ -189,19 +195,21 @@ func (c *controller) shutdownMonitors() {
 }
 
 func (c *controller) createMonitor(source eventSource) monitor {
+	defer c.log.Un(c.log.Trace("createMonitor(%v)", source))
 	m := newMonitor(c, &source)
 	go func() {
 		<-m.Done()
 		select {
 		case c.monitorch <- source:
 		case <-c.lc.Done():
-			c.log.Warnf("done before monitor %v:%v complete", source.id, source.container)
+			c.log.Warnf("done before monitor %v complete", source)
 		}
 	}()
 	return m
 }
 
 func (c *controller) createInitialMonitors(pods []*v1.Pod) {
+	defer c.log.Un(c.log.Trace("createInitialMonitors(pods=%v)", len(pods)))
 	for _, pod := range pods {
 		c.ensureMonitorsForPod(pod)
 	}

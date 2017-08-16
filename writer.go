@@ -40,9 +40,6 @@ func (w *writer) Fprint(out io.Writer, ev Event) error {
 	if _, err := out.Write([]byte(ev.Log())); err != nil {
 		return err
 	}
-	if _, err := out.Write([]byte("\n")); err != nil {
-		return err
-	}
 	return nil
 }
 

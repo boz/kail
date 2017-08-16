@@ -17,7 +17,7 @@ spec:
         command:
         - /bin/sh
         - "-c"
-        - while true; do date; sleep 1; done
+        - for i in $(seq 1 5); do echo "$i"; sleep 1; done
 ---
 kind: Service
 apiVersion: v1

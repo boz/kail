@@ -27,8 +27,7 @@ func newMonitor(c *controller, source EventSource) monitor {
 	go lc.WatchContext(c.ctx)
 
 	log := c.log.WithComponent(
-		fmt.Sprintf("monitor %v/%v:%v",
-			source.Namespace(), source.Name(), source.Container()))
+		fmt.Sprintf("monitor [%v]", source))
 
 	m := &_monitor{
 		core:    c.cs.CoreV1(),

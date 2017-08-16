@@ -1,6 +1,10 @@
 package kail
 
-import "github.com/boz/kcache/nsname"
+import (
+	"fmt"
+
+	"github.com/boz/kcache/nsname"
+)
 
 type EventSource interface {
 	Namespace() string
@@ -29,6 +33,11 @@ func (es eventSource) Container() string {
 
 func (es eventSource) Node() string {
 	return es.node
+}
+
+func (es eventSource) String() string {
+	return fmt.Sprintf("%v/%v@%v",
+		es.id.Namespace, es.id.Name, es.container)
 }
 
 type Event interface {
