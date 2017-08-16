@@ -1,6 +1,9 @@
 package kail
 
 import (
+	"context"
+
+	logutil "github.com/boz/go-logutil"
 	"github.com/boz/kcache/types/daemonset"
 	"github.com/boz/kcache/types/deployment"
 	"github.com/boz/kcache/types/node"
@@ -14,7 +17,7 @@ type DS interface {
 	Pods() pod.Controller
 	Ready() <-chan struct{}
 	Done() <-chan struct{}
-	Shutdown()
+	Close()
 }
 
 type datastore struct {
@@ -36,6 +39,7 @@ type datastore struct {
 
 	readych chan struct{}
 	donech  chan struct{}
+	log     logutil.Log
 }
 
 type cacheController interface {
@@ -56,8 +60,21 @@ func (ds *datastore) Done() <-chan struct{} {
 	return ds.donech
 }
 
-func (ds *datastore) Shutdown() {
+func (ds *datastore) Close() {
 	ds.closeAll()
+}
+
+func (ds *datastore) run(ctx context.Context) {
+	go func() {
+		select {
+		case <-ctx.Done():
+			ds.Close()
+		case <-ds.Done():
+		}
+	}()
+
+	go ds.waitReadyAll()
+	go ds.waitDoneAll()
 }
 
 func (ds *datastore) waitReadyAll() {

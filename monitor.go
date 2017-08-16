@@ -72,9 +72,11 @@ func (m *_monitor) run() {
 
 	go m.mainloop(ctx, donech)
 
-	<-m.lc.ShutdownRequest()
-	m.lc.ShutdownInitiated()
-	cancel()
+	go func() {
+		<-m.lc.ShutdownRequest()
+		m.lc.ShutdownInitiated()
+		cancel()
+	}()
 
 	<-donech
 }
@@ -120,7 +122,7 @@ func (m *_monitor) readloop(ctx context.Context) error {
 
 	stream, err := req.Stream()
 	if err != nil {
-		return m.log.Err(err, "error opening stream")
+		return err
 	}
 
 	defer stream.Close()

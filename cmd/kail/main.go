@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 	"text/tabwriter"
 
 	logutil "github.com/boz/go-logutil"
@@ -66,16 +68,39 @@ func main() {
 
 	ctx := logutil.NewContext(context.Background(), log)
 
+	ctx, cancel := context.WithCancel(ctx)
+
+	go watchSignals(ctx, cancel)
+
 	ds := createDS(ctx, cs, dsb)
 
 	if *flagDryRun {
 		listPods(ds)
-	} else {
-		streamLogs(ctx, cs, ds)
+		ds.Close()
+		cancel()
+		<-ds.Done()
+		return
 	}
 
-	ds.Shutdown()
+	controller := createController(ctx, cs, ds)
+	streamLogs(controller)
+	cancel()
+
 	<-ds.Done()
+	<-controller.Done()
+}
+
+func watchSignals(ctx context.Context, cancel context.CancelFunc) {
+	// NOTE: ignoring SIGINT to improve responsiveness Ctrl-C responsiveness
+	sigch := make(chan os.Signal, 1)
+	signal.Notify(sigch, syscall.SIGHUP, syscall.SIGQUIT)
+	go func() {
+		select {
+		case <-ctx.Done():
+		case <-sigch:
+			cancel()
+		}
+	}()
 }
 
 func createLog() logutil.Log {
@@ -86,7 +111,7 @@ func createLog() logutil.Log {
 	parent.Level = lvl
 	parent.Out = *flagLogFile
 
-	return logutil_logrus.New(parent)
+	return logutil_logrus.New(parent).WithComponent("kail.main")
 }
 
 func createKubeClient() kubernetes.Interface {
@@ -172,12 +197,18 @@ func listPods(ds kail.DS) {
 	w.Flush()
 }
 
-func streamLogs(ctx context.Context, cs kubernetes.Interface, ds kail.DS) {
+func createController(
+	ctx context.Context, cs kubernetes.Interface, ds kail.DS) kail.Controller {
 
 	filter := kail.NewContainerFilter(*flagContainers)
 
 	controller, err := kail.NewController(ctx, cs, ds.Pods(), filter)
 	kingpin.FatalIfError(err, "Error creating controller")
+
+	return controller
+}
+
+func streamLogs(controller kail.Controller) {
 
 	writer := kail.NewWriter(os.Stdout)
 

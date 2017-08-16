@@ -1,15 +1,26 @@
-for file in _example/{prod,demo,test}.yml; do
-  kubectl create -f "$file"
-done
+#!/bin/sh
 
-./kail
+# ./kail
+# ./kail --svc api
+# ./kail --svc prod/api -c nginx
+# ./kail --rs workers --ns test --ns demo
+# ./kail --deploy api -c cache
+# ./kail -l 'app=api,component != worker' -c nginx
 
-./kail --svc api
+start() {
+  for file in $(dirname $0)/{prod,demo,test}.yml; do
+    kubectl create -f "$file"
+  done
+}
 
-./kail --svc prod/api -c nginx
+stop() {
+  for file in $(dirname $0)/{prod,demo,test}.yml; do
+    kubectl delete -f "$file"
+  done
+}
 
-./kail --rs workers --ns test --ns demo
+case "$1" in
+  start) start;;
+  stop) stop;;
+esac
 
-./kail --deploy api -c cache
-
-./kail -l 'app=api,component != worker' -c nginx

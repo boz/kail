@@ -105,7 +105,10 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 	ds := &datastore{
 		readych: make(chan struct{}),
 		donech:  make(chan struct{}),
+		log:     log.WithComponent("kail.ds"),
 	}
+
+	log = log.WithComponent("kail.ds.builder")
 
 	base, err := pod.NewController(ctx, log, cs, "")
 	if err != nil {
@@ -272,8 +275,7 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 		}
 	}
 
-	go ds.waitReadyAll()
-	go ds.waitDoneAll()
+	ds.run(ctx)
 
 	return ds, nil
 }

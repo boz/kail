@@ -19,7 +19,7 @@ const (
 
 type Controller interface {
 	Events() <-chan Event
-	Stop()
+	Close()
 	Done() <-chan struct{}
 }
 
@@ -44,6 +44,7 @@ func NewController(
 	go lc.WatchContext(ctx)
 
 	log := logutil.FromContextOrDefault(ctx)
+	log = log.WithComponent("kail.controller")
 
 	c := &controller{
 		cs:        cs,
@@ -77,6 +78,9 @@ type controller struct {
 	lc  lifecycle.Lifecycle
 }
 
+type podMonitors map[eventSource]monitor
+type monitors map[nsname.NSName]podMonitors
+
 func (c *controller) Events() <-chan Event {
 	return c.eventch
 }
@@ -85,7 +89,7 @@ func (c *controller) Done() <-chan struct{} {
 	return c.lc.Done()
 }
 
-func (c *controller) Stop() {
+func (c *controller) Close() {
 	c.lc.Shutdown()
 }
 
@@ -102,6 +106,8 @@ func (c *controller) run(initial []*v1.Pod) {
 
 	for {
 
+		c.log.Debugf("loop draining:%v monitors:%v", draining, len(c.monitors))
+
 		if draining && len(c.monitors) == 0 {
 			return
 		}
@@ -109,23 +115,43 @@ func (c *controller) run(initial []*v1.Pod) {
 		select {
 
 		case <-shutdownch:
+			c.log.Debugf("shutdown requested")
 			shutdownch = nil
 			draining = true
-			c.shutdownMonitors()
+
+			for _, pms := range c.monitors {
+				for _, pm := range pms {
+					go pm.Shutdown()
+				}
+			}
 
 		case ev, ok := <-peventch:
 			if !ok {
-				c.lc.Shutdown()
+				c.log.Debugf("pods closed")
+
+				go c.lc.Shutdown()
 				peventch = nil
 				break
 			}
-			c.handlePodEvent(ev)
+
+			if !draining {
+				c.handlePodEvent(ev)
+				break
+			}
 
 		case source := <-c.monitorch:
-			c.log.Debugf("removing source %v", source)
 			if pms, ok := c.monitors[source.id]; ok {
-				delete(pms, source)
+				if _, ok := pms[source]; ok {
+					c.log.Debugf("removing source %v", source)
+					delete(pms, source)
+					if len(pms) == 0 {
+						c.log.Debugf("removing pod %v", source.id)
+						delete(c.monitors, source.id)
+					}
+					break
+				}
 			}
+			c.log.Warnf("attempted to remove unknown source: %v", source)
 		}
 	}
 }
@@ -140,7 +166,7 @@ func (c *controller) handlePodEvent(ev pod.Event) {
 	if ev.Type() == kcache.EventTypeDelete {
 		if pms, ok := c.monitors[id]; ok {
 			for _, pm := range pms {
-				pm.Shutdown()
+				go pm.Shutdown()
 			}
 		}
 		return
@@ -167,8 +193,7 @@ func (c *controller) ensureMonitorsForPod(pod *v1.Pod) {
 	if pms, ok := c.monitors[id]; ok {
 		for source, pm := range pms {
 			if !sources[source] {
-				c.log.Debugf("shutting down %v", source)
-				pm.Shutdown()
+				go pm.Shutdown()
 			}
 		}
 	}
@@ -192,14 +217,6 @@ func (c *controller) ensureMonitorsForPod(pod *v1.Pod) {
 	c.monitors[id] = pms
 }
 
-func (c *controller) shutdownMonitors() {
-	for _, pms := range c.monitors {
-		for _, pm := range pms {
-			pm.Shutdown()
-		}
-	}
-}
-
 func (c *controller) createMonitor(source eventSource) monitor {
 	defer c.log.Un(c.log.Trace("createMonitor(%v)", source))
 	m := newMonitor(c, &source)
@@ -220,7 +237,3 @@ func (c *controller) createInitialMonitors(pods []*v1.Pod) {
 		c.ensureMonitorsForPod(pod)
 	}
 }
-
-type podMonitors map[eventSource]monitor
-
-type monitors map[nsname.NSName]podMonitors
