@@ -91,9 +91,8 @@ func main() {
 }
 
 func watchSignals(ctx context.Context, cancel context.CancelFunc) {
-	// NOTE: ignoring SIGINT to improve responsiveness Ctrl-C responsiveness
 	sigch := make(chan os.Signal, 1)
-	signal.Notify(sigch, syscall.SIGHUP, syscall.SIGQUIT)
+	signal.Notify(sigch, syscall.SIGINT, syscall.SIGHUP)
 	go func() {
 		select {
 		case <-ctx.Done():

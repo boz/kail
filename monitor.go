@@ -55,7 +55,7 @@ type _monitor struct {
 }
 
 func (m *_monitor) Shutdown() {
-	m.lc.Shutdown()
+	m.lc.ShutdownAsync()
 }
 
 func (m *_monitor) Done() <-chan struct{} {
@@ -72,11 +72,9 @@ func (m *_monitor) run() {
 
 	go m.mainloop(ctx, donech)
 
-	go func() {
-		<-m.lc.ShutdownRequest()
-		m.lc.ShutdownInitiated()
-		cancel()
-	}()
+	<-m.lc.ShutdownRequest()
+	m.lc.ShutdownInitiated()
+	cancel()
 
 	<-donech
 }
@@ -84,11 +82,9 @@ func (m *_monitor) run() {
 func (m *_monitor) mainloop(ctx context.Context, donech chan struct{}) {
 	defer m.log.Un(m.log.Trace("mainloop"))
 	defer close(donech)
-	defer func() {
-		go m.lc.Shutdown()
-	}()
+	defer m.lc.ShutdownAsync()
 
-	// todo: backoff
+	// todo: backoff handled by k8 client?
 
 	for ctx.Err() == nil {
 		err := m.readloop(ctx)

@@ -116,12 +116,14 @@ func (c *controller) run(initial []*v1.Pod) {
 
 		case <-shutdownch:
 			c.log.Debugf("shutdown requested")
+
+			c.lc.ShutdownInitiated()
 			shutdownch = nil
 			draining = true
 
 			for _, pms := range c.monitors {
 				for _, pm := range pms {
-					go pm.Shutdown()
+					pm.Shutdown()
 				}
 			}
 
@@ -166,7 +168,7 @@ func (c *controller) handlePodEvent(ev pod.Event) {
 	if ev.Type() == kcache.EventTypeDelete {
 		if pms, ok := c.monitors[id]; ok {
 			for _, pm := range pms {
-				go pm.Shutdown()
+				pm.Shutdown()
 			}
 		}
 		return
@@ -193,7 +195,7 @@ func (c *controller) ensureMonitorsForPod(pod *v1.Pod) {
 	if pms, ok := c.monitors[id]; ok {
 		for source, pm := range pms {
 			if !sources[source] {
-				go pm.Shutdown()
+				pm.Shutdown()
 			}
 		}
 	}
@@ -219,15 +221,23 @@ func (c *controller) ensureMonitorsForPod(pod *v1.Pod) {
 
 func (c *controller) createMonitor(source eventSource) monitor {
 	defer c.log.Un(c.log.Trace("createMonitor(%v)", source))
+
 	m := newMonitor(c, &source)
+
 	go func() {
-		<-m.Done()
+		select {
+		case <-m.Done():
+		case <-c.lc.Done():
+			c.log.Warnf("done before monitor %v complete", source)
+			return
+		}
 		select {
 		case c.monitorch <- source:
 		case <-c.lc.Done():
-			c.log.Warnf("done before monitor %v complete", source)
+			c.log.Warnf("done before monitor %v unregistered", source)
 		}
 	}()
+
 	return m
 }
 
