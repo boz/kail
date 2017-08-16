@@ -4,7 +4,7 @@ Kubernetes tail.  Streams logs from all containers of all matched pods.
 
 [![asciicast](https://asciinema.org/a/133521.png)](https://asciinema.org/a/133521)
 
-Kail reacts to a changing cluster and will pick up any new matching pods that are created.  Similarly, logs from pods that fall out of selection are removed from the output.
+Kail reacts to a changing cluster and will pick up any new matching pods that are created.  Logs from pods that fall out of selection are removed from the output while the rest continue.
 
 ## Usage
 
@@ -105,5 +105,5 @@ $ ./kail
 
 # install image into minikube and run via kubectl
 $ make image-minikube
-$ kubectl run -it --rm -l kail.ignore=true --restart=Never --image=abozanich/kail kail
+$ kubectl run -it --rm -l kail.ignore=true --restart=Never --image=kail kail
 ```
