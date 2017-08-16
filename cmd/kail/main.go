@@ -20,21 +20,19 @@ import (
 )
 
 var (
-	flagIgnore = kingpin.
-			Flag("ignore", "ignore selector").
-			PlaceHolder("SELECTOR").
-			Default("kail.ignore=true").
-			Strings()
+	flagIgnore = kingpin.Flag("ignore", "ignore selector").PlaceHolder("SELECTOR").Default("kail.ignore=true").Strings()
 
-	flagLabel      = kingpin.Flag("label", "label").PlaceHolder("SELECTOR").Strings()
-	flagPod        = kingpin.Flag("pod", "pod").PlaceHolder("NAME").Strings()
-	flagNs         = kingpin.Flag("ns", "namespace").PlaceHolder("NAME").Strings()
+	flagLabel      = kingpin.Flag("label", "label").Short('l').PlaceHolder("SELECTOR").Strings()
+	flagPod        = kingpin.Flag("pod", "pod").Short('p').PlaceHolder("NAME").Strings()
+	flagNs         = kingpin.Flag("ns", "namespace").Short('n').PlaceHolder("NAME").Strings()
 	flagSvc        = kingpin.Flag("svc", "service").PlaceHolder("NAME").Strings()
 	flagRc         = kingpin.Flag("rc", "replication controller").PlaceHolder("NAME").Strings()
 	flagRs         = kingpin.Flag("rs", "replica set").PlaceHolder("NAME").Strings()
 	flagDs         = kingpin.Flag("ds", "daemonset").PlaceHolder("NAME").Strings()
-	flagDeployment = kingpin.Flag("deploy", "deployment").PlaceHolder("NAME").Strings()
+	flagDeployment = kingpin.Flag("deploy", "deployment").Short('d').PlaceHolder("NAME").Strings()
 	flagNode       = kingpin.Flag("node", "node").PlaceHolder("NAME").Strings()
+
+	flagContainers = kingpin.Flag("containers", "containers").Short('c').PlaceHolder("NAME").Strings()
 
 	flagDryRun = kingpin.Flag("dry-run", "print matching pods and exit").
 			Default("false").
@@ -70,11 +68,10 @@ func main() {
 
 	ds := createDS(ctx, cs, dsb)
 
-	listPods(ds)
-
-	if !*flagDryRun {
+	if *flagDryRun {
 		streamLogs(ctx, cs, ds)
-		return
+	} else {
+		listPods(ds)
 	}
 
 	ds.Shutdown()
@@ -105,43 +102,43 @@ func createKubeClient() kubernetes.Interface {
 func createDSBuilder() kail.DSBuilder {
 	dsb := kail.NewDSBuilder()
 
-	if selectors := parseLabels("ignore", flagIgnore); len(selectors) > 0 {
+	if selectors := parseLabels("ignore", *flagIgnore); len(selectors) > 0 {
 		dsb = dsb.WithIgnore(selectors...)
 	}
 
-	if selectors := parseLabels("selector", flagLabel); len(selectors) > 0 {
+	if selectors := parseLabels("selector", *flagLabel); len(selectors) > 0 {
 		dsb = dsb.WithSelectors(selectors...)
 	}
 
-	if ids := parseIds("pod", flagPod); len(ids) > 0 {
+	if ids := parseIds("pod", *flagPod); len(ids) > 0 {
 		dsb = dsb.WithPods(ids...)
 	}
 
-	if flagNs != nil {
+	if len(*flagNs) > 0 {
 		dsb = dsb.WithNamespace(*flagNs...)
 	}
 
-	if ids := parseIds("service", flagSvc); len(ids) > 0 {
+	if ids := parseIds("service", *flagSvc); len(ids) > 0 {
 		dsb = dsb.WithService(ids...)
 	}
 
-	if flagNode != nil {
+	if len(*flagNode) > 0 {
 		dsb = dsb.WithNode(*flagNode...)
 	}
 
-	if ids := parseIds("rc", flagRc); len(ids) > 0 {
+	if ids := parseIds("rc", *flagRc); len(ids) > 0 {
 		dsb = dsb.WithRC(ids...)
 	}
 
-	if ids := parseIds("rs", flagRs); len(ids) > 0 {
+	if ids := parseIds("rs", *flagRs); len(ids) > 0 {
 		dsb = dsb.WithRS(ids...)
 	}
 
-	if ids := parseIds("ds", flagDs); len(ids) > 0 {
+	if ids := parseIds("ds", *flagDs); len(ids) > 0 {
 		dsb = dsb.WithDS(ids...)
 	}
 
-	if ids := parseIds("deploy", flagDeployment); len(ids) > 0 {
+	if ids := parseIds("deploy", *flagDeployment); len(ids) > 0 {
 		dsb = dsb.WithDeployment(ids...)
 	}
 
@@ -176,7 +173,10 @@ func listPods(ds kail.DS) {
 }
 
 func streamLogs(ctx context.Context, cs kubernetes.Interface, ds kail.DS) {
-	controller, err := kail.NewController(ctx, cs, ds.Pods())
+
+	filter := kail.NewContainerFilter(*flagContainers)
+
+	controller, err := kail.NewController(ctx, cs, ds.Pods(), filter)
 	kingpin.FatalIfError(err, "Error creating controller")
 
 	writer := kail.NewWriter(os.Stdout)
@@ -191,26 +191,20 @@ func streamLogs(ctx context.Context, cs kubernetes.Interface, ds kail.DS) {
 	}
 }
 
-func parseLabels(name string, vals *[]string) []labels.Selector {
+func parseLabels(name string, vals []string) []labels.Selector {
 	var selectors []labels.Selector
-	if vals != nil {
-		for _, val := range *vals {
-			selector, err := labels.Parse(val)
-			kingpin.FatalIfError(err, "invalid %v labels expression: '%v'", name, val)
-			selectors = append(selectors, selector)
-		}
+	for _, val := range vals {
+		selector, err := labels.Parse(val)
+		kingpin.FatalIfError(err, "invalid %v labels expression: '%v'", name, val)
+		selectors = append(selectors, selector)
 	}
 	return selectors
 }
 
-func parseIds(name string, vals *[]string) []nsname.NSName {
+func parseIds(name string, vals []string) []nsname.NSName {
 	var ids []nsname.NSName
 
-	if vals == nil {
-		return ids
-	}
-
-	for _, val := range *vals {
+	for _, val := range vals {
 		parts := strings.Split(val, "/")
 		switch len(parts) {
 		case 2:

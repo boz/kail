@@ -9,8 +9,8 @@ $ kail
 # all pods named 'x'
 $ kail --pod x
 
-# pod named 'y' in namespace 'x'
-$ kail --pod x/y
+# containers 'a' and 'b' of pod named 'y' in namespace 'x'
+$ kail --pod x/y -c a -c b
 
 # all pods in namespace 'x' or 'y'
 $ kail --ns x --ns y

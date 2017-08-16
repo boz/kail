@@ -37,8 +37,17 @@ func (w *writer) Fprint(out io.Writer, ev Event) error {
 	if _, err := prefixColor.Fprint(out, ": "); err != nil {
 		return err
 	}
-	if _, err := out.Write(ev.Log()); err != nil {
+
+	log := ev.Log()
+
+	if _, err := out.Write(log); err != nil {
 		return err
+	}
+
+	if sz := len(log); sz == 0 || log[sz-1] != byte('\n') {
+		if _, err := out.Write([]byte("\n")); err != nil {
+			return err
+		}
 	}
 	return nil
 }

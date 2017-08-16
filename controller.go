@@ -23,7 +23,11 @@ type Controller interface {
 	Done() <-chan struct{}
 }
 
-func NewController(ctx context.Context, cs kubernetes.Interface, pcontroller pod.Controller) (Controller, error) {
+func NewController(
+	ctx context.Context,
+	cs kubernetes.Interface,
+	pcontroller pod.Controller,
+	filter ContainerFilter) (Controller, error) {
 
 	pods, err := pcontroller.Subscribe()
 	if err != nil {
@@ -44,6 +48,7 @@ func NewController(ctx context.Context, cs kubernetes.Interface, pcontroller pod
 	c := &controller{
 		cs:        cs,
 		pods:      pods,
+		filter:    filter,
 		eventch:   make(chan Event, eventBufsiz),
 		monitorch: make(chan eventSource),
 		monitors:  make(map[nsname.NSName]podMonitors),
@@ -58,8 +63,9 @@ func NewController(ctx context.Context, cs kubernetes.Interface, pcontroller pod
 }
 
 type controller struct {
-	cs   kubernetes.Interface
-	pods pod.Subscription
+	cs     kubernetes.Interface
+	pods   pod.Subscription
+	filter ContainerFilter
 
 	eventch   chan Event
 	monitorch chan eventSource
@@ -148,7 +154,7 @@ func (c *controller) ensureMonitorsForPod(pod *v1.Pod) {
 	sources := make(map[eventSource]bool)
 
 	for _, cstatus := range pod.Status.ContainerStatuses {
-		if cstatus.Ready {
+		if c.filter.Accept(cstatus) {
 			source := eventSource{id, cstatus.Name, pod.Spec.NodeName}
 			sources[source] = true
 		}
