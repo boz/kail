@@ -20,6 +20,7 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 var (
@@ -34,6 +35,8 @@ var (
 	flagDs         = kingpin.Flag("ds", "daemonset").PlaceHolder("NAME").Strings()
 	flagDeployment = kingpin.Flag("deploy", "deployment").Short('d').PlaceHolder("NAME").Strings()
 	flagNode       = kingpin.Flag("node", "node").PlaceHolder("NAME").Strings()
+
+	flagContext = kingpin.Flag("context", "kubernetes context").PlaceHolder("CONTEXT-NAME").String()
 
 	flagContainers = kingpin.Flag("containers", "containers").Short('c').PlaceHolder("NAME").Strings()
 
@@ -115,7 +118,13 @@ func createLog() logutil.Log {
 }
 
 func createKubeClient() kubernetes.Interface {
-	cs, _, err := util.KubeClient()
+	overrides := &clientcmd.ConfigOverrides{}
+
+	if flagContext != nil {
+		overrides.CurrentContext = *flagContext
+	}
+
+	cs, _, err := util.KubeClient(overrides)
 	kingpin.FatalIfError(err, "Error configuring kubernetes connection")
 
 	_, err = cs.CoreV1().Namespaces().List(metav1.ListOptions{})
