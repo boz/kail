@@ -4,46 +4,106 @@ Kubernetes tail.  Streams logs from all containers of all matched pods.
 
 [![asciicast](https://asciinema.org/a/133521.png)](https://asciinema.org/a/133521)
 
+Kail reacts to a changing cluster and will pick up any new matching pods that are created.  Similarly, logs from pods that fall out of selection are removed from the output.
+
+## Usage
+
+With no arguments, kail matches all pods in the cluster.  You can control the matching pods with arguments which select pods based on various criteria.
+
+Flag | Selection
+--- | ---
+`--label LABEL-SELECTOR` | match pods based on a [standard label selector](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/)
+`--pod NAME` | match pods by name
+`--ns NAMESPACE-NAME` | match pods in the given namespace
+`--svc NAME` | match pods belonging to the given service
+`--rc NAME` | match pods belonging to the given replication controller 
+`--rs NAME` | match pods belonging to the given replica set
+`--deploy NAME` | match pods belonging to the given deployment
+`--node NODE-NAME` | match pods running on the given node
+`--containers CONTAINER-NAME` | restrict which containers logs are shown for
+
+### Name Selection
+
+When selecting objects by `NAME` (`--svc`, `--pod`, etc...), you can either qualify it with a namespace to restrict the selection to the given namespace, or select across all namespaces by giving just the object name.
+
+Example:
+
 ```sh
-# view logs from all pods
-$ kail
+# match pods belonging to a replicaset named 'workers' in any namespace.
+$ kail --rs workers
 
-# all pods named 'x'
-$ kail --pod x
+# match pods belonging to the replicaset named 'workers' only in the 'staging' namespace
+$ kail --rs staging/workers
+```
 
-# containers 'a' and 'b' of pod named 'y' in namespace 'x'
-$ kail --pod x/y -c a -c b
+### Combining Selectors
 
-# all pods in namespace 'x' or 'y'
-$ kail --ns x --ns y
+If the same flag is used more than once, the selectors for that flag are "OR"ed together.
 
-# pods matching service 'x'
-$ kail --svc x
+```sh
+# match pods belonging to a replicaset named "workers" or "db"
+$ kail --rs workers --rs db
+```
 
-# pods controled by replication controller 'x'
-$ kail --rc x
+Different flags are "AND"ed together:
 
-# pods controled by replica set 'x'
-$ kail --rc x
+```sh
+# match pods belonging to both the service "frontend" and the deployment "webapp"
+$ kail --svc frontend --deploy webapp
+```
 
-# pods for deployment 'x'
-$ kail --deploy x
+## Installing
 
-# pods for daemonset 'x'
-$ kail --ds x
+### Downloading
 
-# pods on node 'x'
-$ kail --node x
+Kail binaries for Linux and OSX can be found on the [latest release](https://github.com/boz/kail/releases/latest) page.
 
-# pod with labels x=a, or x=b and y != z
-$ kail --label 'x in (a, b)' --label 'y != z'
+### Running in a cluster with `kubectl`
 
-# pods controlled by replica set 'x', targeted by service 'y', on node 'z'
-$ kail --rs x --svc y --node z
+The docker image [abozanich/kail](https://hub.docker.com/r/abozanich/kail/) is available for running `kail` from within a kubernetes pod via `kubectl`.
 
-# run via kubectl
-kubectl run -it --rm -l kail.ignore=true --restart=Never --image=abozanich/kail kail
+Note: be sure to include the `kail.ignore=true` label, otherwise... it's logging all the way down.
 
-# run via kubectl for service 'x'
-kubectl run -it --rm -l kail.ignore=true --restart=Never --image=abozanich/kail kail -- --svc x
+Example:
+
+```sh
+# match all pods - synonymous with 'kail' from the command line
+$ kubectl run -it --rm -l kail.ignore=true --restart=Never --image=abozanich/kail kail
+
+# match pods belonging to service 'api' in any namespace - synonymous with 'kail --svc api'
+$ kubectl run -it --rm -l kail.ignore=true --restart=Never --image=abozanich/kail kail -- --svc api
+```
+
+## Building
+
+### Install build and dev dependencies
+
+* [govendor](https://github.com/kardianos/govendor)
+* [minikube](https://kubernetes.io/docs/getting-started-guides/minikube/)
+* _linux only_: [musl-gcc](https://www.musl-libc.org/how.html) for building docker images.
+
+### Install source code and golang dependencies
+
+```sh
+$ go get -d github.com/boz/kail
+$ cd $GOPATH/src/github.com/boz/kail
+$ make install-deps
+```
+
+### Build binary
+
+```sh
+$ make
+```
+
+### Install run against a demo cluster
+
+```sh
+$ minikube start
+$ ./_example/demo.sh start
+$ ./kail
+
+# install image into minikube and run via kubectl
+$ make image-minikube
+$ kubectl run -it --rm -l kail.ignore=true --restart=Never --image=abozanich/kail kail
 ```
