@@ -57,80 +57,80 @@
 		{
 			"checksumSHA1": "MTH+ZMsTbcZInzBxH6cBUcietJ8=",
 			"path": "github.com/boz/kcache",
-			"revision": "bb0c2390fce7c75b4db23860e79b55878b60a0a7",
-			"revisionTime": "2017-08-15T23:55:34Z"
+			"revision": "d2f10b0f1364575eafda6aa523ff57e517f5923d",
+			"revisionTime": "2017-08-16T01:20:11Z"
 		},
 		{
 			"checksumSHA1": "RGlf5AzjJwJDpwCJWUZKRX+lfgw=",
 			"path": "github.com/boz/kcache/client",
-			"revision": "bb0c2390fce7c75b4db23860e79b55878b60a0a7",
-			"revisionTime": "2017-08-15T23:55:34Z"
+			"revision": "d2f10b0f1364575eafda6aa523ff57e517f5923d",
+			"revisionTime": "2017-08-16T01:20:11Z"
 		},
 		{
-			"checksumSHA1": "Ft8EiAxi5cIUzVsPHUPLp1eE6+Q=",
+			"checksumSHA1": "/ay4kraaeIMXx8DN4u0fg7Qhyvs=",
 			"path": "github.com/boz/kcache/filter",
-			"revision": "bb0c2390fce7c75b4db23860e79b55878b60a0a7",
-			"revisionTime": "2017-08-15T23:55:34Z"
+			"revision": "d2f10b0f1364575eafda6aa523ff57e517f5923d",
+			"revisionTime": "2017-08-16T01:20:11Z"
 		},
 		{
 			"checksumSHA1": "a2Z8yzTfbPbPubiU07q652qGuuM=",
 			"path": "github.com/boz/kcache/join",
-			"revision": "bb0c2390fce7c75b4db23860e79b55878b60a0a7",
-			"revisionTime": "2017-08-15T23:55:34Z"
+			"revision": "d2f10b0f1364575eafda6aa523ff57e517f5923d",
+			"revisionTime": "2017-08-16T01:20:11Z"
 		},
 		{
 			"checksumSHA1": "cVUF28ARwaKHooP4gpYjH9+TMmc=",
 			"path": "github.com/boz/kcache/nsname",
-			"revision": "bb0c2390fce7c75b4db23860e79b55878b60a0a7",
-			"revisionTime": "2017-08-15T23:55:34Z"
+			"revision": "d2f10b0f1364575eafda6aa523ff57e517f5923d",
+			"revisionTime": "2017-08-16T01:20:11Z"
 		},
 		{
 			"checksumSHA1": "LLPh76DEtyGTFSzdtyDNG9wVc6o=",
 			"path": "github.com/boz/kcache/types/daemonset",
-			"revision": "bb0c2390fce7c75b4db23860e79b55878b60a0a7",
-			"revisionTime": "2017-08-15T23:55:34Z"
+			"revision": "d2f10b0f1364575eafda6aa523ff57e517f5923d",
+			"revisionTime": "2017-08-16T01:20:11Z"
 		},
 		{
 			"checksumSHA1": "YCva3SLoR0G2EWSJrmQdnLrwa/k=",
 			"path": "github.com/boz/kcache/types/deployment",
-			"revision": "bb0c2390fce7c75b4db23860e79b55878b60a0a7",
-			"revisionTime": "2017-08-15T23:55:34Z"
+			"revision": "d2f10b0f1364575eafda6aa523ff57e517f5923d",
+			"revisionTime": "2017-08-16T01:20:11Z"
 		},
 		{
 			"checksumSHA1": "qGyOw78D3ReTEqlAYOID7kmv/54=",
 			"path": "github.com/boz/kcache/types/node",
-			"revision": "bb0c2390fce7c75b4db23860e79b55878b60a0a7",
-			"revisionTime": "2017-08-15T23:55:34Z"
+			"revision": "d2f10b0f1364575eafda6aa523ff57e517f5923d",
+			"revisionTime": "2017-08-16T01:20:11Z"
 		},
 		{
 			"checksumSHA1": "YwjQRO3f2HS0v+1QTvjfzuqLuVY=",
 			"path": "github.com/boz/kcache/types/pod",
-			"revision": "bb0c2390fce7c75b4db23860e79b55878b60a0a7",
-			"revisionTime": "2017-08-15T23:55:34Z"
+			"revision": "d2f10b0f1364575eafda6aa523ff57e517f5923d",
+			"revisionTime": "2017-08-16T01:20:11Z"
 		},
 		{
 			"checksumSHA1": "Zw3JhS3LsYifU6pKQmPB40qlFcY=",
 			"path": "github.com/boz/kcache/types/replicaset",
-			"revision": "bb0c2390fce7c75b4db23860e79b55878b60a0a7",
-			"revisionTime": "2017-08-15T23:55:34Z"
+			"revision": "d2f10b0f1364575eafda6aa523ff57e517f5923d",
+			"revisionTime": "2017-08-16T01:20:11Z"
 		},
 		{
 			"checksumSHA1": "H1CywbM6uH3hoEUrbu185emQXHI=",
 			"path": "github.com/boz/kcache/types/replicationcontroller",
-			"revision": "bb0c2390fce7c75b4db23860e79b55878b60a0a7",
-			"revisionTime": "2017-08-15T23:55:34Z"
+			"revision": "d2f10b0f1364575eafda6aa523ff57e517f5923d",
+			"revisionTime": "2017-08-16T01:20:11Z"
 		},
 		{
 			"checksumSHA1": "Qu+4+QsMlwBMVPidPoJqlTFyFIM=",
 			"path": "github.com/boz/kcache/types/service",
-			"revision": "bb0c2390fce7c75b4db23860e79b55878b60a0a7",
-			"revisionTime": "2017-08-15T23:55:34Z"
+			"revision": "d2f10b0f1364575eafda6aa523ff57e517f5923d",
+			"revisionTime": "2017-08-16T01:20:11Z"
 		},
 		{
 			"checksumSHA1": "hvQV7lHc5IoAGsNQRuO+19v9n1A=",
 			"path": "github.com/boz/kcache/util",
-			"revision": "bb0c2390fce7c75b4db23860e79b55878b60a0a7",
-			"revisionTime": "2017-08-15T23:55:34Z"
+			"revision": "d2f10b0f1364575eafda6aa523ff57e517f5923d",
+			"revisionTime": "2017-08-16T01:20:11Z"
 		},
 		{
 			"checksumSHA1": "mrz/kicZiUaHxkyfvC/DyQcr8Do=",

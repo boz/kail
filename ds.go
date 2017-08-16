@@ -19,9 +19,10 @@ import (
 )
 
 type DSBuilder interface {
-	WithNamespace(name ...string) DSBuilder
-	WithPods(id ...nsname.NSName) DSBuilder
+	WithIgnore(selectors ...labels.Selector) DSBuilder
 	WithSelectors(selectors ...labels.Selector) DSBuilder
+	WithPods(id ...nsname.NSName) DSBuilder
+	WithNamespace(name ...string) DSBuilder
 	WithService(id ...nsname.NSName) DSBuilder
 	WithNode(name ...string) DSBuilder
 	WithRC(id ...nsname.NSName) DSBuilder
@@ -40,9 +41,10 @@ type DS interface {
 }
 
 type dsBuilder struct {
-	namespaces  []string
-	pods        []nsname.NSName
+	ignore      []labels.Selector
 	selectors   []labels.Selector
+	pods        []nsname.NSName
+	namespaces  []string
 	services    []nsname.NSName
 	nodes       []string
 	rcs         []nsname.NSName
@@ -55,8 +57,13 @@ func NewDSBuilder() DSBuilder {
 	return &dsBuilder{}
 }
 
-func (b *dsBuilder) WithNamespace(name ...string) DSBuilder {
-	b.namespaces = append(b.namespaces, name...)
+func (b *dsBuilder) WithIgnore(selector ...labels.Selector) DSBuilder {
+	b.ignore = append(b.ignore, selector...)
+	return b
+}
+
+func (b *dsBuilder) WithSelectors(selectors ...labels.Selector) DSBuilder {
+	b.selectors = append(b.selectors, selectors...)
 	return b
 }
 
@@ -65,8 +72,8 @@ func (b *dsBuilder) WithPods(id ...nsname.NSName) DSBuilder {
 	return b
 }
 
-func (b *dsBuilder) WithSelectors(selectors ...labels.Selector) DSBuilder {
-	b.selectors = append(b.selectors, selectors...)
+func (b *dsBuilder) WithNamespace(name ...string) DSBuilder {
+	b.namespaces = append(b.namespaces, name...)
 	return b
 }
 
@@ -120,24 +127,15 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 		return nil, log.Err(err, "null filter")
 	}
 
-	if sz := len(b.namespaces); sz > 0 {
-		ids := make([]nsname.NSName, 0, sz)
-		for _, ns := range b.namespaces {
-			ids = append(ids, nsname.New(ns, ""))
+	if len(b.ignore) != 0 {
+		filters := make([]filter.Filter, 0, len(b.ignore))
+		for _, selector := range b.ignore {
+			filters = append(filters, filter.Not(filter.Selector(selector)))
 		}
-
-		ds.pods, err = ds.pods.CloneWithFilter(filter.NSName(ids...))
+		ds.pods, err = ds.pods.CloneWithFilter(filter.And(filters...))
 		if err != nil {
 			ds.closeAll()
-			return nil, log.Err(err, "namespace filter")
-		}
-	}
-
-	if len(b.pods) != 0 {
-		ds.pods, err = ds.pods.CloneWithFilter(filter.NSName(b.pods...))
-		if err != nil {
-			ds.closeAll()
-			return nil, log.Err(err, "pods filter")
+			return nil, log.Err(err, "labels filter")
 		}
 	}
 
@@ -150,6 +148,27 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 		if err != nil {
 			ds.closeAll()
 			return nil, log.Err(err, "labels filter")
+		}
+	}
+
+	if len(b.pods) != 0 {
+		ds.pods, err = ds.pods.CloneWithFilter(filter.NSName(b.pods...))
+		if err != nil {
+			ds.closeAll()
+			return nil, log.Err(err, "pods filter")
+		}
+	}
+
+	if sz := len(b.namespaces); sz > 0 {
+		ids := make([]nsname.NSName, 0, sz)
+		for _, ns := range b.namespaces {
+			ids = append(ids, nsname.New(ns, ""))
+		}
+
+		ds.pods, err = ds.pods.CloneWithFilter(filter.NSName(ids...))
+		if err != nil {
+			ds.closeAll()
+			return nil, log.Err(err, "namespace filter")
 		}
 	}
 

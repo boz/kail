@@ -38,4 +38,10 @@ $ kail --label 'x in (a, b)' --label 'y != z'
 
 # pods controlled by replica set 'x', targeted by service 'y', on node 'z'
 $ kail --rs x --svc y --node z
+
+# run via kubectl
+kubectl run -it --rm -l kail.ignore=true --restart=Never --image=abozanich/kail kail
+
+# run via kubectl for service 'x'
+kubectl run -it --rm -l kail.ignore=true --restart=Never --image=abozanich/kail kail -- --svc x
 ```
