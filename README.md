@@ -54,6 +54,13 @@ $ kail --svc frontend --deploy webapp
 
 ## Installing
 
+### Homebrew
+
+```sh
+$ brew tap boz/repo
+$ brew install boz/repo/kail
+```
+
 ### Downloading
 
 Kail binaries for Linux and OSX can be found on the [latest release](https://github.com/boz/kail/releases/latest) page.
