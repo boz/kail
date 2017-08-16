@@ -106,7 +106,6 @@ func createDSBuilder() kail.DSBuilder {
 	dsb := kail.NewDSBuilder()
 
 	if selectors := parseLabels("ignore", flagIgnore); len(selectors) > 0 {
-		fmt.Println("ignoring: %v", selectors)
 		dsb = dsb.WithIgnore(selectors...)
 	}
 

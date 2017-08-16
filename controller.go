@@ -126,6 +126,9 @@ func (c *controller) handlePodEvent(ev pod.Event) {
 	pod := ev.Resource()
 	id := nsname.ForObject(pod)
 
+	c.log.Debugf("event %v %v/%v",
+		ev.Type(), ev.Resource().GetName(), ev.Resource().GetNamespace())
+
 	if ev.Type() == kcache.EventTypeDelete {
 		if pms, ok := c.monitors[id]; ok {
 			for _, pm := range pms {

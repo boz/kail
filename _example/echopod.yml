@@ -11,9 +11,9 @@ spec:
     - /bin/sh
     - "-c"
     - while true; do date; sleep 1; done
-  - name: dfer
+  - name: doomed
     image: busybox
     command:
     - /bin/sh
     - "-c"
-    - while true; do df -h; sleep 5; done
+    - for i in $(seq 1 5); do echo "$i"; sleep 1; done

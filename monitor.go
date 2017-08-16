@@ -26,7 +26,9 @@ func newMonitor(c *controller, source EventSource) monitor {
 	lc := lifecycle.New()
 	go lc.WatchContext(c.ctx)
 
-	log := c.log.WithComponent(fmt.Sprintf("monitor %v/%v:%v", source.Namespace(), source.Name(), source.Container()))
+	log := c.log.WithComponent(
+		fmt.Sprintf("monitor %v/%v:%v",
+			source.Namespace(), source.Name(), source.Container()))
 
 	m := &_monitor{
 		core:    c.cs.CoreV1(),
@@ -81,15 +83,19 @@ func (m *_monitor) run() {
 func (m *_monitor) mainloop(ctx context.Context, donech chan struct{}) {
 	defer m.log.Un(m.log.Trace("mainloop"))
 	defer close(donech)
-	defer m.lc.Shutdown()
+	defer func() {
+		go m.lc.Shutdown()
+	}()
 
 	// todo: backoff
 
 	for ctx.Err() == nil {
 		err := m.readloop(ctx)
-		switch err {
-		case io.EOF:
-		case nil:
+		switch {
+		case err == io.EOF:
+		case err == nil:
+		case ctx.Err() != nil:
+			return
 		default:
 			m.log.ErrWarn(err, "error readloop")
 			return
@@ -98,6 +104,7 @@ func (m *_monitor) mainloop(ctx context.Context, donech chan struct{}) {
 }
 
 func (m *_monitor) readloop(ctx context.Context) error {
+	defer m.log.Un(m.log.Trace("readloop"))
 
 	since := int64(1)
 	opts := &v1.PodLogOptions{
@@ -126,6 +133,8 @@ func (m *_monitor) readloop(ctx context.Context) error {
 		switch {
 		case err == io.EOF:
 			return err
+		case ctx.Err() != nil:
+			return ctx.Err()
 		case err != nil:
 			return m.log.Err(err, "error while reading logs")
 		case nread == 0:
