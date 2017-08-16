@@ -69,9 +69,9 @@ func main() {
 	ds := createDS(ctx, cs, dsb)
 
 	if *flagDryRun {
-		streamLogs(ctx, cs, ds)
-	} else {
 		listPods(ds)
+	} else {
+		streamLogs(ctx, cs, ds)
 	}
 
 	ds.Shutdown()

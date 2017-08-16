@@ -2,6 +2,8 @@
 
 Kubernetes tail.  Streams logs from all containers of all matched pods.
 
+[![asciicast](https://asciinema.org/a/133521.png)](https://asciinema.org/a/133521)
+
 ```sh
 # view logs from all pods
 $ kail
