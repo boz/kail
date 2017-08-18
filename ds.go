@@ -6,6 +6,7 @@ import (
 	logutil "github.com/boz/go-logutil"
 	"github.com/boz/kcache/types/daemonset"
 	"github.com/boz/kcache/types/deployment"
+	"github.com/boz/kcache/types/ingress"
 	"github.com/boz/kcache/types/node"
 	"github.com/boz/kcache/types/pod"
 	"github.com/boz/kcache/types/replicaset"
@@ -28,6 +29,7 @@ type datastore struct {
 	rssBase         replicaset.Controller
 	dssBase         daemonset.Controller
 	deploymentsBase deployment.Controller
+	ingressesBase   ingress.Controller
 
 	pods        pod.Controller
 	services    service.Controller
@@ -36,6 +38,7 @@ type datastore struct {
 	rss         replicaset.Controller
 	dss         daemonset.Controller
 	deployments deployment.Controller
+	ingresses   ingress.Controller
 
 	readych chan struct{}
 	donech  chan struct{}
@@ -111,6 +114,7 @@ func (ds *datastore) controllers() []cacheController {
 		ds.rssBase,
 		ds.dssBase,
 		ds.deploymentsBase,
+		ds.ingressesBase,
 		ds.pods,
 		ds.services,
 		ds.nodes,
@@ -118,6 +122,7 @@ func (ds *datastore) controllers() []cacheController {
 		ds.rss,
 		ds.dss,
 		ds.deployments,
+		ds.ingresses,
 	}
 
 	var existing []cacheController

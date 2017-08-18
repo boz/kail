@@ -35,6 +35,7 @@ var (
 	flagDs         = kingpin.Flag("ds", "daemonset").PlaceHolder("NAME").Strings()
 	flagDeployment = kingpin.Flag("deploy", "deployment").Short('d').PlaceHolder("NAME").Strings()
 	flagNode       = kingpin.Flag("node", "node").PlaceHolder("NAME").Strings()
+	flagIng        = kingpin.Flag("ing", "ingress").PlaceHolder("NAME").Strings()
 
 	flagContext = kingpin.Flag("context", "kubernetes context").PlaceHolder("CONTEXT-NAME").String()
 
@@ -174,6 +175,10 @@ func createDSBuilder() kail.DSBuilder {
 
 	if ids := parseIds("deploy", *flagDeployment); len(ids) > 0 {
 		dsb = dsb.WithDeployment(ids...)
+	}
+
+	if ids := parseIds("ing", *flagIng); len(ids) > 0 {
+		dsb = dsb.WithIngress(ids...)
 	}
 
 	return dsb

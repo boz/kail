@@ -78,3 +78,13 @@ spec:
         - /bin/sh
         - "-c"
         - i=0; while true; do echo "creating user $1 thumbnail..."; sleep 2; i=$((i + 1)); done
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  namespace: test
+  name: api
+spec:
+  backend:
+    serviceName: api
+    servicePort: 4200

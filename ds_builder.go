@@ -9,6 +9,7 @@ import (
 	"github.com/boz/kcache/nsname"
 	"github.com/boz/kcache/types/daemonset"
 	"github.com/boz/kcache/types/deployment"
+	"github.com/boz/kcache/types/ingress"
 	"github.com/boz/kcache/types/pod"
 	"github.com/boz/kcache/types/replicaset"
 	"github.com/boz/kcache/types/replicationcontroller"
@@ -28,6 +29,7 @@ type DSBuilder interface {
 	WithRS(id ...nsname.NSName) DSBuilder
 	WithDS(id ...nsname.NSName) DSBuilder
 	WithDeployment(id ...nsname.NSName) DSBuilder
+	WithIngress(id ...nsname.NSName) DSBuilder
 
 	Create(ctx context.Context, cs kubernetes.Interface) (DS, error)
 }
@@ -47,6 +49,7 @@ type dsBuilder struct {
 	rss         []nsname.NSName
 	dss         []nsname.NSName
 	deployments []nsname.NSName
+	ingresses   []nsname.NSName
 }
 
 func (b *dsBuilder) WithIgnore(selector ...labels.Selector) DSBuilder {
@@ -96,6 +99,11 @@ func (b *dsBuilder) WithDS(id ...nsname.NSName) DSBuilder {
 
 func (b *dsBuilder) WithDeployment(id ...nsname.NSName) DSBuilder {
 	b.deployments = append(b.deployments, id...)
+	return b
+}
+
+func (b *dsBuilder) WithIngress(id ...nsname.NSName) DSBuilder {
+	b.ingresses = append(b.ingresses, id...)
 	return b
 }
 
@@ -272,6 +280,35 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 		if err != nil {
 			ds.closeAll()
 			return nil, log.Err(err, "deployment join")
+		}
+	}
+
+	if len(b.ingresses) != 0 {
+		ds.ingressesBase, err = ingress.NewController(ctx, log, cs, "")
+		if err != nil {
+			ds.closeAll()
+			return nil, log.Err(err, "ingress base controller")
+		}
+
+		if ds.servicesBase == nil {
+			ds.servicesBase, err = service.NewController(ctx, log, cs, "")
+			if err != nil {
+				ds.closeAll()
+				return nil, log.Err(err, "service base controller")
+			}
+			ds.services = ds.servicesBase
+		}
+
+		ds.ingresses, err = ds.ingressesBase.CloneWithFilter(filter.NSName(b.ingresses...))
+		if err != nil {
+			ds.closeAll()
+			return nil, log.Err(err, "ingresses controller")
+		}
+
+		ds.pods, err = join.IngressPods(ctx, ds.ingresses, ds.services, ds.pods)
+		if err != nil {
+			ds.closeAll()
+			return nil, log.Err(err, "ingress join")
 		}
 	}
 
