@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"sync"
 
 	"k8s.io/api/core/v1"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
@@ -36,7 +35,6 @@ func newMonitor(c *controller, source EventSource) monitor {
 		log:     log,
 		lc:      lc,
 		ctx:     c.ctx,
-		wg:      &sync.WaitGroup{},
 	}
 
 	go m.run()
@@ -51,7 +49,6 @@ type _monitor struct {
 	log     logutil.Log
 	lc      lifecycle.Lifecycle
 	ctx     context.Context
-	wg      *sync.WaitGroup
 }
 
 func (m *_monitor) Shutdown() {
