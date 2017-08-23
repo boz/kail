@@ -90,13 +90,12 @@ func (c *controller) Done() <-chan struct{} {
 }
 
 func (c *controller) Close() {
-	c.lc.Shutdown()
+	c.lc.Shutdown(nil)
 }
 
 func (c *controller) run(initial []*v1.Pod) {
 	defer c.log.Un(c.log.Trace("run"))
 	defer c.lc.ShutdownCompleted()
-	defer c.pods.Close()
 
 	peventch := c.pods.Events()
 	shutdownch := c.lc.ShutdownRequest()
@@ -109,36 +108,35 @@ func (c *controller) run(initial []*v1.Pod) {
 		c.log.Debugf("loop draining:%v monitors:%v", draining, len(c.monitors))
 
 		if draining && len(c.monitors) == 0 {
-			return
+			break
 		}
 
 		select {
 
-		case <-shutdownch:
-			c.log.Debugf("shutdown requested")
+		case err := <-shutdownch:
+			c.log.Debugf("shutdown requested: %v", err)
 
-			c.lc.ShutdownInitiated()
+			c.lc.ShutdownInitiated(err)
 			shutdownch = nil
 			draining = true
-
-			for _, pms := range c.monitors {
-				for _, pm := range pms {
-					pm.Shutdown()
-				}
-			}
 
 		case ev, ok := <-peventch:
 			if !ok {
 				c.log.Debugf("pods closed")
 
-				go c.lc.Shutdown()
 				peventch = nil
+
+				if !draining {
+					c.lc.ShutdownInitiated(nil)
+					shutdownch = nil
+					draining = true
+				}
+
 				break
 			}
 
 			if !draining {
 				c.handlePodEvent(ev)
-				break
 			}
 
 		case source := <-c.monitorch:
@@ -156,6 +154,9 @@ func (c *controller) run(initial []*v1.Pod) {
 			c.log.Warnf("attempted to remove unknown source: %v", source)
 		}
 	}
+
+	c.pods.Close()
+	<-c.pods.Done()
 }
 
 func (c *controller) handlePodEvent(ev pod.Event) {
@@ -225,12 +226,14 @@ func (c *controller) createMonitor(source eventSource) monitor {
 	m := newMonitor(c, &source)
 
 	go func() {
+
 		select {
 		case <-m.Done():
-		case <-c.lc.Done():
-			c.log.Warnf("done before monitor %v complete", source)
-			return
+		case <-c.lc.ShuttingDown():
+			m.Shutdown()
+			<-m.Done()
 		}
+
 		select {
 		case c.monitorch <- source:
 		case <-c.lc.Done():
