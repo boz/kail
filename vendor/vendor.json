@@ -25,6 +25,30 @@
 			"revision": ""
 		},
 		{
+			"checksumSHA1": "+4d+Y67AMKKuyR1EO33Zdt+RVx0=",
+			"path": "github.com/Azure/go-autorest/autorest",
+			"revision": "f6be1abbb5abd0517522f850dd785990d373da7e",
+			"revisionTime": "2017-09-13T22:19:17Z"
+		},
+		{
+			"checksumSHA1": "7G4HgRaIT25bgz/hPtXG6Kv8Fho=",
+			"path": "github.com/Azure/go-autorest/autorest/adal",
+			"revision": "f6be1abbb5abd0517522f850dd785990d373da7e",
+			"revisionTime": "2017-09-13T22:19:17Z"
+		},
+		{
+			"checksumSHA1": "2KdBFgT4qY+fMOkBTa5vA9V0AiM=",
+			"path": "github.com/Azure/go-autorest/autorest/azure",
+			"revision": "f6be1abbb5abd0517522f850dd785990d373da7e",
+			"revisionTime": "2017-09-13T22:19:17Z"
+		},
+		{
+			"checksumSHA1": "LSF/pNrjhIxl6jiS6bKooBFCOxI=",
+			"path": "github.com/Azure/go-autorest/autorest/date",
+			"revision": "f6be1abbb5abd0517522f850dd785990d373da7e",
+			"revisionTime": "2017-09-13T22:19:17Z"
+		},
+		{
 			"checksumSHA1": "eR1X+xHsTko6qQ5oAqEjRDQHdik=",
 			"path": "github.com/PuerkitoBio/purell",
 			"revision": "7cf257f0a33260797b0febf39f95fccd86aab2a3",
@@ -163,6 +187,12 @@
 			"revisionTime": "2017-07-11T18:34:51Z"
 		},
 		{
+			"checksumSHA1": "GXOurDGgsLmJs0wounpdWZZRSGw=",
+			"path": "github.com/dgrijalva/jwt-go",
+			"revision": "a539ee1a749a2b895533f979515ac7e6e0f5b650",
+			"revisionTime": "2017-06-08T00:51:49Z"
+		},
+		{
 			"checksumSHA1": "g3z4plpw9F/ho3hdJb+X/bN/OgE=",
 			"path": "github.com/emicklei/go-restful",
 			"revision": "68c9750c36bb8cb433f1b88c807b4b30df4acc40",
@@ -291,6 +321,48 @@
 			"path": "github.com/googleapis/gnostic/extensions",
 			"revision": "57b0290873708074edf87ad921eccec8bef5f8ec",
 			"revisionTime": "2017-08-07T22:07:25Z"
+		},
+		{
+			"checksumSHA1": "Zcapl92yLsRGDnDfmD5BMZrU0i8=",
+			"path": "github.com/gophercloud/gophercloud",
+			"revision": "b4c2377fa77951a0e08163f52dc9b3e206355194",
+			"revisionTime": "2017-09-16T16:12:21Z"
+		},
+		{
+			"checksumSHA1": "0rCdHaLp8s8+UK/Uk/7E3qsLtPI=",
+			"path": "github.com/gophercloud/gophercloud/openstack",
+			"revision": "b4c2377fa77951a0e08163f52dc9b3e206355194",
+			"revisionTime": "2017-09-16T16:12:21Z"
+		},
+		{
+			"checksumSHA1": "oOJkelRgWx0NzUmxuI3kTS27gM0=",
+			"path": "github.com/gophercloud/gophercloud/openstack/identity/v2/tenants",
+			"revision": "b4c2377fa77951a0e08163f52dc9b3e206355194",
+			"revisionTime": "2017-09-16T16:12:21Z"
+		},
+		{
+			"checksumSHA1": "z5NsqMZX3TLMzpmwzOOXE4M5D9w=",
+			"path": "github.com/gophercloud/gophercloud/openstack/identity/v2/tokens",
+			"revision": "b4c2377fa77951a0e08163f52dc9b3e206355194",
+			"revisionTime": "2017-09-16T16:12:21Z"
+		},
+		{
+			"checksumSHA1": "HzVyehPh0jvNZpL5iodoWpUd46k=",
+			"path": "github.com/gophercloud/gophercloud/openstack/identity/v3/tokens",
+			"revision": "b4c2377fa77951a0e08163f52dc9b3e206355194",
+			"revisionTime": "2017-09-16T16:12:21Z"
+		},
+		{
+			"checksumSHA1": "hOTxf5bdm8+cwSTO+OO/maDz6ss=",
+			"path": "github.com/gophercloud/gophercloud/openstack/utils",
+			"revision": "b4c2377fa77951a0e08163f52dc9b3e206355194",
+			"revisionTime": "2017-09-16T16:12:21Z"
+		},
+		{
+			"checksumSHA1": "YspETi3tOMvawKIT91HyuqaA5lM=",
+			"path": "github.com/gophercloud/gophercloud/pagination",
+			"revision": "b4c2377fa77951a0e08163f52dc9b3e206355194",
+			"revisionTime": "2017-09-16T16:12:21Z"
 		},
 		{
 			"checksumSHA1": "K6exl2ouL7d8cR2i378EzZOdRVI=",
@@ -1077,10 +1149,34 @@
 			"revisionTime": "2017-08-01T23:46:53Z"
 		},
 		{
+			"checksumSHA1": "VqPX5MJBxMvDzB5IimoE/J0WEpg=",
+			"path": "k8s.io/client-go/plugin/pkg/client/auth",
+			"revision": "c6f8cf2c47d21d55fa0df928291b2580544886c8",
+			"revisionTime": "2017-09-09T21:30:45Z"
+		},
+		{
+			"checksumSHA1": "PLjqeU9EMGwNfP9RjFlBU4o6JXM=",
+			"path": "k8s.io/client-go/plugin/pkg/client/auth/azure",
+			"revision": "c6f8cf2c47d21d55fa0df928291b2580544886c8",
+			"revisionTime": "2017-09-09T21:30:45Z"
+		},
+		{
 			"checksumSHA1": "2BDblVF8oc5+YR6c625SC0JnnUo=",
 			"path": "k8s.io/client-go/plugin/pkg/client/auth/gcp",
 			"revision": "2103a0e46b61d837aca715a6da810783527a4974",
 			"revisionTime": "2017-08-14T17:09:32Z"
+		},
+		{
+			"checksumSHA1": "qQQyz6Hooq0s5am4SGJ104rl1Sc=",
+			"path": "k8s.io/client-go/plugin/pkg/client/auth/oidc",
+			"revision": "c6f8cf2c47d21d55fa0df928291b2580544886c8",
+			"revisionTime": "2017-09-09T21:30:45Z"
+		},
+		{
+			"checksumSHA1": "hO/6OULcd4o8YEpz77yMgjcHoRk=",
+			"path": "k8s.io/client-go/plugin/pkg/client/auth/openstack",
+			"revision": "c6f8cf2c47d21d55fa0df928291b2580544886c8",
+			"revisionTime": "2017-09-09T21:30:45Z"
 		},
 		{
 			"checksumSHA1": "kzfV63cSw93fJCAUBuQVzgfLHMc=",
