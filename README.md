@@ -16,7 +16,7 @@ Flag | Selection
 `--pod NAME` | match pods by name
 `--ns NAMESPACE-NAME` | match pods in the given namespace
 `--svc NAME` | match pods belonging to the given service
-`--rc NAME` | match pods belonging to the given replication controller 
+`--rc NAME` | match pods belonging to the given replication controller
 `--rs NAME` | match pods belonging to the given replica set
 `--deploy NAME` | match pods belonging to the given deployment
 `--node NODE-NAME` | match pods running on the given node
@@ -63,7 +63,8 @@ Flag | Description
 `--dry-run` | Print initial matched pods and exit
 `--log-level LEVEL` | Set the logging level (default: `error`)
 `--log-file PATH` | Write output to `PATH` (default: `/dev/stderr`)
-`--since DURATION` | Show logs as old as given duration.  See [here](https://golang.org/pkg/time/#ParseDuration) for duration format.
+`--since DURATION` | Display logs as old as given duration. Ex: `5s`, `2m`, `1.5h` or `2h45m` (defaults: `1s`)
+See [here](https://golang.org/pkg/time/#ParseDuration) for more information on the duration format.
 
 ## Installing
 
