@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"time"
 
 	"k8s.io/api/core/v1"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
@@ -16,12 +17,16 @@ const (
 	logBufsiz = 1024
 )
 
+type monitorConfig struct {
+	since time.Duration
+}
+
 type monitor interface {
 	Shutdown()
 	Done() <-chan struct{}
 }
 
-func newMonitor(c *controller, source EventSource) monitor {
+func newMonitor(c *controller, source EventSource, config monitorConfig) monitor {
 	lc := lifecycle.New()
 	go lc.WatchContext(c.ctx)
 
@@ -31,6 +36,7 @@ func newMonitor(c *controller, source EventSource) monitor {
 	m := &_monitor{
 		core:    c.cs.CoreV1(),
 		source:  source,
+		config:  config,
 		eventch: c.eventch,
 		log:     log,
 		lc:      lc,
@@ -45,6 +51,7 @@ func newMonitor(c *controller, source EventSource) monitor {
 type _monitor struct {
 	core    corev1.CoreV1Interface
 	source  EventSource
+	config  monitorConfig
 	eventch chan<- Event
 	log     logutil.Log
 	lc      lifecycle.Lifecycle
@@ -82,8 +89,13 @@ func (m *_monitor) mainloop(ctx context.Context, donech chan struct{}) {
 
 	// todo: backoff handled by k8 client?
 
+	sinceSecs := int64(m.config.since / time.Second)
+	since := &sinceSecs
+
+	m.log.Debugf("displaying logs since %v seconds", sinceSecs)
+
 	for ctx.Err() == nil {
-		err := m.readloop(ctx)
+		err := m.readloop(ctx, since)
 		switch {
 		case err == io.EOF:
 		case err == nil:
@@ -94,17 +106,18 @@ func (m *_monitor) mainloop(ctx context.Context, donech chan struct{}) {
 			m.lc.ShutdownAsync(err)
 			return
 		}
+		sinceSecs = 1
 	}
 }
 
-func (m *_monitor) readloop(ctx context.Context) error {
+func (m *_monitor) readloop(ctx context.Context, since *int64) error {
 	defer m.log.Un(m.log.Trace("readloop"))
 
-	since := int64(1)
 	opts := &v1.PodLogOptions{
+		Previous:     true,
 		Container:    m.source.Container(),
 		Follow:       true,
-		SinceSeconds: &since,
+		SinceSeconds: since,
 	}
 
 	req := m.core.

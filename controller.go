@@ -2,6 +2,7 @@ package kail
 
 import (
 	"context"
+	"time"
 
 	"k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
@@ -27,7 +28,8 @@ func NewController(
 	ctx context.Context,
 	cs kubernetes.Interface,
 	pcontroller pod.Controller,
-	filter ContainerFilter) (Controller, error) {
+	filter ContainerFilter,
+	since time.Duration) (Controller, error) {
 
 	pods, err := pcontroller.Subscribe()
 	if err != nil {
@@ -50,6 +52,7 @@ func NewController(
 		cs:        cs,
 		pods:      pods,
 		filter:    filter,
+		mconfig:   monitorConfig{since: since},
 		eventch:   make(chan Event, eventBufsiz),
 		monitorch: make(chan eventSource),
 		monitors:  make(map[nsname.NSName]podMonitors),
@@ -72,6 +75,7 @@ type controller struct {
 	monitorch chan eventSource
 
 	monitors monitors
+	mconfig  monitorConfig
 
 	log logutil.Log
 	ctx context.Context
@@ -223,7 +227,7 @@ func (c *controller) ensureMonitorsForPod(pod *v1.Pod) {
 func (c *controller) createMonitor(source eventSource) monitor {
 	defer c.log.Un(c.log.Trace("createMonitor(%v)", source))
 
-	m := newMonitor(c, &source)
+	m := newMonitor(c, &source, c.mconfig)
 
 	go func() {
 

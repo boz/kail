@@ -52,6 +52,11 @@ var (
 	flagLogLevel = kingpin.Flag("log-level", "log level").
 			Default("error").
 			Enum("debug", "info", "warn", "error")
+
+	flagSince = kingpin.Flag("since", "Display logs generated since given duration.").
+			PlaceHolder("DURATION").
+			Default("1s").
+			Duration()
 )
 
 func main() {
@@ -216,7 +221,7 @@ func createController(
 
 	filter := kail.NewContainerFilter(*flagContainers)
 
-	controller, err := kail.NewController(ctx, cs, ds.Pods(), filter)
+	controller, err := kail.NewController(ctx, cs, ds.Pods(), filter, *flagSince)
 	kingpin.FatalIfError(err, "Error creating controller")
 
 	return controller

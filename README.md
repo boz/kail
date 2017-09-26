@@ -63,6 +63,7 @@ Flag | Description
 `--dry-run` | Print initial matched pods and exit
 `--log-level LEVEL` | Set the logging level (default: `error`)
 `--log-file PATH` | Write output to `PATH` (default: `/dev/stderr`)
+`--since DURATION` | Show logs as old as given duration.  See [here](https://golang.org/pkg/time/#ParseDuration) for duration format.
 
 ## Installing
 
