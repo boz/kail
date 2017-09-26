@@ -53,7 +53,7 @@ var (
 			Default("error").
 			Enum("debug", "info", "warn", "error")
 
-	flagSince = kingpin.Flag("since", "Display logs generated since given duration.").
+	flagSince = kingpin.Flag("since", "Display logs generated since given duration, like 5s, 2m, 1.5h or 2h45m. Defaults to 1s.").
 			PlaceHolder("DURATION").
 			Default("1s").
 			Duration()
