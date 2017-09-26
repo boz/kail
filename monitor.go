@@ -103,6 +103,7 @@ func (m *_monitor) mainloop(ctx context.Context, donech chan struct{}) {
 			m.lc.ShutdownAsync(nil)
 			return
 		default:
+			m.log.ErrWarn(err, "streaming done")
 			m.lc.ShutdownAsync(err)
 			return
 		}
@@ -114,7 +115,6 @@ func (m *_monitor) readloop(ctx context.Context, since *int64) error {
 	defer m.log.Un(m.log.Trace("readloop"))
 
 	opts := &v1.PodLogOptions{
-		Previous:     true,
 		Container:    m.source.Container(),
 		Follow:       true,
 		SinceSeconds: since,
