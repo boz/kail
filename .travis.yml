@@ -15,11 +15,11 @@ install:
 
 script: |
   make test-full && \
-  if [ "$TRAVIS_BRANCH" == "master" -a "$TRAVIS_GO_VERSION" == "1.8" ]; then
+  if [ "$TRAVIS_REPO_SLUG" == "boz/kail" -a "$TRAVIS_BRANCH" == "master" -a "$TRAVIS_GO_VERSION" == "1.8" ]; then
     docker login -u "$DOCKERHUB_USERNAME" -p "$DOCKERHUB_PASSWORD" && \
       make image-push
   fi && \
-  if [ "${TRAVIS_TAG:0:1}" == "v" -a "$TRAVIS_GO_VERSION" == "1.8" ]; then
+  if [ "$TRAVIS_REPO_SLUG" == "boz/kail" -a "${TRAVIS_TAG:0:1}" == "v" -a "$TRAVIS_GO_VERSION" == "1.8" ]; then
     docker login -u "$DOCKERHUB_USERNAME" -p "$DOCKERHUB_PASSWORD" && \
       DOCKER_TAG="$TRAVIS_TAG" make image-push && \
       curl -sL https://git.io/goreleaser | \
