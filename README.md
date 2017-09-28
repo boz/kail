@@ -128,3 +128,30 @@ $ ./kail
 $ make image-minikube
 $ kubectl run -it --rm -l kail.ignore=true --restart=Never --image=kail kail
 ```
+
+### Stress testing
+
+Start minikube with a fair amount of CPU and memory.
+
+```sh
+$ minikube start --cpus 4 --memory 8192
+```
+
+Start [`stress.yml`](_example/stress.yml) resources.
+
+```sh
+$ kubectl create -f _example/stress.yml
+```
+
+Wait a while for the pods to run
+
+```sh
+$ kubectl get pods --namespace stress | grep Running | wc -l
+100
+```
+
+Run kail
+
+```sh
+./kail --ns stress
+```
