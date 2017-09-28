@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"os"
 	"os/signal"
@@ -20,6 +21,7 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
@@ -57,6 +59,14 @@ var (
 			PlaceHolder("DURATION").
 			Default("1s").
 			Duration()
+
+	flagGlogV = kingpin.Flag("glog-v", "glog -v value").
+			Default("0").
+			String()
+
+	flagGlogVmodule = kingpin.Flag("glog-vmodule", "glog -vmodule flag").
+			Default("").
+			String()
 )
 
 func main() {
@@ -72,7 +82,7 @@ func main() {
 
 	log := createLog()
 
-	cs := createKubeClient()
+	cs, rc := createKubeClient()
 
 	dsb := createDSBuilder()
 
@@ -84,13 +94,15 @@ func main() {
 
 	ds := createDS(ctx, cs, dsb)
 
+	filter := kail.NewContainerFilter(*flagContainers)
+
 	if *flagDryRun {
 
-		listPods(ds)
+		listPods(ds, filter)
 
 	} else {
 
-		streamLogs(createController(ctx, cs, ds))
+		streamLogs(createController(ctx, cs, rc, ds, filter))
 
 	}
 
@@ -123,23 +135,31 @@ func createLog() logutil.Log {
 	parent.Level = lvl
 	parent.Out = *flagLogFile
 
+	// XXX: fucking glog.
+	os.Args = []string{os.Args[0],
+		"-logtostderr=true",
+		"-v=" + *flagGlogV,
+		"-vmodule=" + *flagGlogVmodule,
+	}
+	flag.Parse()
+
 	return logutil_logrus.New(parent).WithComponent("kail.main")
 }
 
-func createKubeClient() kubernetes.Interface {
+func createKubeClient() (kubernetes.Interface, *rest.Config) {
 	overrides := &clientcmd.ConfigOverrides{}
 
 	if flagContext != nil {
 		overrides.CurrentContext = *flagContext
 	}
 
-	cs, _, err := util.KubeClient(overrides)
+	cs, rc, err := util.KubeClient(overrides)
 	kingpin.FatalIfError(err, "Error configuring kubernetes connection")
 
 	_, err = cs.CoreV1().Namespaces().List(metav1.ListOptions{})
 	kingpin.FatalIfError(err, "Can't connnect to kubernetes")
 
-	return cs
+	return cs, rc
 }
 
 func createDSBuilder() kail.DSBuilder {
@@ -204,27 +224,28 @@ func createDS(ctx context.Context, cs kubernetes.Interface, dsb kail.DSBuilder) 
 	return ds
 }
 
-func listPods(ds kail.DS) {
+func listPods(ds kail.DS, filter kail.ContainerFilter) {
 	pods, err := ds.Pods().Cache().List()
 	kingpin.FatalIfError(err, "Error fetching pods")
 
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', 0)
 
-	fmt.Fprintln(w, "NAMESPACE\tNAME\tNODE")
+	fmt.Fprintln(w, "NAMESPACE\tNAME\tCONTAINER\tNODE")
 
 	for _, pod := range pods {
-		fmt.Fprintf(w, "%v\t%v\t%v\n", pod.GetNamespace(), pod.GetName(), pod.Spec.NodeName)
+		_, sources := kail.SourcesForPod(filter, pod)
+		for _, source := range sources {
+			fmt.Fprintf(w, "%v\t%v\t%v\t%v\n", source.Namespace(), source.Name(), source.Container(), source.Node())
+		}
 	}
 
 	w.Flush()
 }
 
 func createController(
-	ctx context.Context, cs kubernetes.Interface, ds kail.DS) kail.Controller {
+	ctx context.Context, cs kubernetes.Interface, rc *rest.Config, ds kail.DS, filter kail.ContainerFilter) kail.Controller {
 
-	filter := kail.NewContainerFilter(*flagContainers)
-
-	controller, err := kail.NewController(ctx, cs, ds.Pods(), filter, *flagSince)
+	controller, err := kail.NewController(ctx, cs, rc, ds.Pods(), filter, *flagSince)
 	kingpin.FatalIfError(err, "Error creating controller")
 
 	return controller

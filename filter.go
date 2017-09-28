@@ -1,6 +1,11 @@
 package kail
 
-import "k8s.io/api/core/v1"
+import (
+	"sort"
+
+	"github.com/boz/kcache/nsname"
+	"k8s.io/api/core/v1"
+)
 
 type ContainerFilter interface {
 	Accept(cs v1.ContainerStatus) bool
@@ -25,4 +30,35 @@ func (cf containerFilter) Accept(cs v1.ContainerStatus) bool {
 		}
 	}
 	return false
+}
+
+func sourcesForPod(filter ContainerFilter, pod *v1.Pod) (nsname.NSName, map[eventSource]bool) {
+	id := nsname.ForObject(pod)
+	sources := make(map[eventSource]bool)
+
+	for _, cstatus := range pod.Status.ContainerStatuses {
+		if filter.Accept(cstatus) {
+			source := eventSource{id, cstatus.Name, pod.Spec.NodeName}
+			sources[source] = true
+		}
+	}
+
+	return id, sources
+}
+
+func SourcesForPod(
+	filter ContainerFilter, pod *v1.Pod) (nsname.NSName, []EventSource) {
+
+	id, internal := sourcesForPod(filter, pod)
+	sources := make([]EventSource, 0, len(internal))
+
+	for source, _ := range internal {
+		sources = append(sources, source)
+	}
+
+	sort.Slice(sources, func(a, b int) bool {
+		return sources[a].Name() < sources[b].Name()
+	})
+
+	return id, sources
 }

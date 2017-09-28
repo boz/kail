@@ -6,6 +6,7 @@ import (
 
 	"k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 
 	lifecycle "github.com/boz/go-lifecycle"
 	logutil "github.com/boz/go-logutil"
@@ -27,6 +28,7 @@ type Controller interface {
 func NewController(
 	ctx context.Context,
 	cs kubernetes.Interface,
+	rc *rest.Config,
 	pcontroller pod.Controller,
 	filter ContainerFilter,
 	since time.Duration) (Controller, error) {
@@ -50,6 +52,7 @@ func NewController(
 
 	c := &controller{
 		cs:        cs,
+		rc:        rc,
 		pods:      pods,
 		filter:    filter,
 		mconfig:   monitorConfig{since: since},
@@ -68,6 +71,7 @@ func NewController(
 
 type controller struct {
 	cs     kubernetes.Interface
+	rc     *rest.Config
 	pods   pod.Subscription
 	filter ContainerFilter
 
@@ -183,15 +187,7 @@ func (c *controller) handlePodEvent(ev pod.Event) {
 }
 
 func (c *controller) ensureMonitorsForPod(pod *v1.Pod) {
-	id := nsname.ForObject(pod)
-	sources := make(map[eventSource]bool)
-
-	for _, cstatus := range pod.Status.ContainerStatuses {
-		if c.filter.Accept(cstatus) {
-			source := eventSource{id, cstatus.Name, pod.Spec.NodeName}
-			sources[source] = true
-		}
-	}
+	id, sources := sourcesForPod(c.filter, pod)
 
 	c.log.Debugf("pod %v/%v: %v containers ready",
 		pod.GetNamespace(), pod.GetName(), len(sources))

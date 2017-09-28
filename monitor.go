@@ -1,13 +1,16 @@
 package kail
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
 	"time"
 
 	"k8s.io/api/core/v1"
+	"k8s.io/client-go/kubernetes"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
+	"k8s.io/client-go/rest"
 
 	lifecycle "github.com/boz/go-lifecycle"
 	logutil "github.com/boz/go-logutil"
@@ -15,6 +18,10 @@ import (
 
 const (
 	logBufsiz = 1024
+)
+
+var (
+	canaryLog = []byte("unexpected stream type \"\"")
 )
 
 type monitorConfig struct {
@@ -34,7 +41,7 @@ func newMonitor(c *controller, source EventSource, config monitorConfig) monitor
 		fmt.Sprintf("monitor [%v]", source))
 
 	m := &_monitor{
-		core:    c.cs.CoreV1(),
+		rc:      c.rc,
 		source:  source,
 		config:  config,
 		eventch: c.eventch,
@@ -49,7 +56,7 @@ func newMonitor(c *controller, source EventSource, config monitorConfig) monitor
 }
 
 type _monitor struct {
-	core    corev1.CoreV1Interface
+	rc      *rest.Config
 	source  EventSource
 	config  monitorConfig
 	eventch chan<- Event
@@ -72,18 +79,34 @@ func (m *_monitor) run() {
 
 	ctx, cancel := context.WithCancel(m.ctx)
 
+	client, err := m.makeClient(ctx)
+	if err != nil {
+		m.lc.ShutdownInitiated(err)
+		cancel()
+		return
+	}
+
 	donech := make(chan struct{})
 
-	go m.mainloop(ctx, donech)
+	go m.mainloop(ctx, client, donech)
 
-	err := <-m.lc.ShutdownRequest()
+	err = <-m.lc.ShutdownRequest()
 	m.lc.ShutdownInitiated(err)
 	cancel()
 
 	<-donech
 }
 
-func (m *_monitor) mainloop(ctx context.Context, donech chan struct{}) {
+func (m *_monitor) makeClient(ctx context.Context) (corev1.CoreV1Interface, error) {
+	cs, err := kubernetes.NewForConfig(m.rc)
+	if err != nil {
+		return nil, err
+	}
+	return cs.CoreV1(), nil
+}
+
+func (m *_monitor) mainloop(
+	ctx context.Context, client corev1.CoreV1Interface, donech chan struct{}) {
 	defer m.log.Un(m.log.Trace("mainloop"))
 	defer close(donech)
 
@@ -94,8 +117,11 @@ func (m *_monitor) mainloop(ctx context.Context, donech chan struct{}) {
 
 	m.log.Debugf("displaying logs since %v seconds", sinceSecs)
 
-	for ctx.Err() == nil {
-		err := m.readloop(ctx, since)
+	for i := 0; ctx.Err() == nil; i++ {
+
+		m.log.Debugf("readloop count: %v", i)
+
+		err := m.readloop(ctx, client, since)
 		switch {
 		case err == io.EOF:
 		case err == nil:
@@ -111,7 +137,9 @@ func (m *_monitor) mainloop(ctx context.Context, donech chan struct{}) {
 	}
 }
 
-func (m *_monitor) readloop(ctx context.Context, since *int64) error {
+func (m *_monitor) readloop(
+	ctx context.Context, client corev1.CoreV1Interface, since *int64) error {
+
 	defer m.log.Un(m.log.Trace("readloop"))
 
 	opts := &v1.PodLogOptions{
@@ -120,11 +148,10 @@ func (m *_monitor) readloop(ctx context.Context, since *int64) error {
 		SinceSeconds: since,
 	}
 
-	req := m.core.
+	req := client.
 		Pods(m.source.Namespace()).
-		GetLogs(m.source.Name(), opts)
-
-	req = req.Context(ctx)
+		GetLogs(m.source.Name(), opts).
+		Context(ctx)
 
 	stream, err := req.Stream()
 	if err != nil {
@@ -148,7 +175,13 @@ func (m *_monitor) readloop(ctx context.Context, since *int64) error {
 			return io.EOF
 		}
 
-		event := newEvent(m.source, logbuf[0:nread])
+		log := logbuf[0:nread]
+
+		if bytes.Compare(canaryLog, log) == 0 {
+			continue
+		}
+
+		event := newEvent(m.source, log)
 
 		select {
 		case m.eventch <- event:
