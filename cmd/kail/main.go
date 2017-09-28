@@ -80,36 +80,39 @@ func main() {
 
 	ctx, cancel := context.WithCancel(ctx)
 
-	go watchSignals(ctx, cancel)
+	sigch := watchSignals(ctx, cancel)
 
 	ds := createDS(ctx, cs, dsb)
 
 	if *flagDryRun {
+
 		listPods(ds)
-		ds.Close()
-		cancel()
-		<-ds.Done()
-		return
+
+	} else {
+
+		streamLogs(createController(ctx, cs, ds))
+
 	}
 
-	controller := createController(ctx, cs, ds)
-	streamLogs(controller)
 	cancel()
-
 	<-ds.Done()
-	<-controller.Done()
+	<-sigch
 }
 
-func watchSignals(ctx context.Context, cancel context.CancelFunc) {
+func watchSignals(ctx context.Context, cancel context.CancelFunc) <-chan struct{} {
+	donech := make(chan struct{})
 	sigch := make(chan os.Signal, 1)
 	signal.Notify(sigch, syscall.SIGINT, syscall.SIGHUP)
 	go func() {
+		defer close(donech)
+		defer signal.Stop(sigch)
 		select {
 		case <-ctx.Done():
 		case <-sigch:
 			cancel()
 		}
 	}()
+	return donech
 }
 
 func createLog() logutil.Log {
