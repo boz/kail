@@ -26,6 +26,11 @@ import (
 )
 
 var (
+	version = "master"
+	commit  = "unknown"
+)
+
+var (
 	flagIgnore = kingpin.Flag("ignore", "ignore selector").PlaceHolder("SELECTOR").Default("kail.ignore=true").Strings()
 
 	flagLabel      = kingpin.Flag("label", "label").Short('l').PlaceHolder("SELECTOR").Strings()
@@ -76,9 +81,16 @@ func main() {
 		os.Args = os.Args[0 : len(os.Args)-1]
 	}
 
+	kingpin.Command("run", "Display logs").Default()
+	kingpin.Command("version", "Display current version")
 	kingpin.CommandLine.HelpFlag.Short('h')
 	kingpin.CommandLine.Help = "Tail for kubernetes pods"
-	kingpin.Parse()
+	cmd := kingpin.Parse()
+
+	if cmd == "version" {
+		showVersion()
+		return
+	}
 
 	log := createLog()
 
@@ -109,6 +121,11 @@ func main() {
 	cancel()
 	<-ds.Done()
 	<-sigch
+}
+
+func showVersion() {
+	fmt.Printf("%s (%s)\n", version, commit)
+	return
 }
 
 func watchSignals(ctx context.Context, cancel context.CancelFunc) <-chan struct{} {

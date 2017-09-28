@@ -3,18 +3,22 @@ DOCKER_IMAGE ?= kail
 DOCKER_REPO  ?= abozanich/$(DOCKER_IMAGE)
 DOCKER_TAG   ?= latest
 
-IMG_LDFLAGS := -w -linkmode external -extldflags "-static"
+ifeq ($(shell uname -s),Linux)
+	BUILD_ENV   = CC=$(shell which musl-gcc)
+	LDFLAGS     = -w -linkmode external -extldflags "-static"
+else
+	BUILD_ENV = GOOS=linux GOARCH=amd64
+endif
+
+ifdef TRAVIS
+	LDFLAGS += -X main.version=$(TRAVIS_BRANCH) -X main.commit=$(TRAVIS_COMMIT)
+endif
 
 build:
 	govendor build -i +program
 
-ifeq ($(shell uname -s),Darwin)
 build-linux:
-	GOOS=linux GOARCH=amd64 go build -o kail-linux ./cmd/kail
-else
-build-linux:
-	CC=$$(which musl-gcc) go build --ldflags '$(IMG_LDFLAGS)' -o kail-linux ./cmd/kail
-endif
+	$(BUILD_ENV) go build --ldflags '$(LDFLAGS)'  -o kail-linux ./cmd/kail
 
 test:
 	govendor test +local
