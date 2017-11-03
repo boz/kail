@@ -4,13 +4,17 @@ kind: Namespace
 metadata:
   name: prod
 ---
-apiVersion: apps/v1beta1
+apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
   namespace: prod
   name: api
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: api
+      tier: frontend
   template:
     metadata:
       labels:
