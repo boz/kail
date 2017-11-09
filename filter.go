@@ -57,7 +57,9 @@ func SourcesForPod(
 	}
 
 	sort.Slice(sources, func(a, b int) bool {
-		return sources[a].Name() < sources[b].Name()
+		na := sources[a].Namespace() + sources[a].Name()
+		nb := sources[b].Namespace() + sources[b].Name()
+		return na < nb
 	})
 
 	return id, sources
