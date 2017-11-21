@@ -9,6 +9,7 @@ import (
 
 type ContainerFilter interface {
 	Accept(cs v1.ContainerStatus) bool
+	AcceptInitContainer(cs v1.ContainerStatus) bool
 }
 
 func NewContainerFilter(names []string) ContainerFilter {
@@ -32,6 +33,13 @@ func (cf containerFilter) Accept(cs v1.ContainerStatus) bool {
 	return false
 }
 
+func (cf containerFilter) AcceptInitContainer(cs v1.ContainerStatus) bool {
+	if cs.State.Running != nil {
+		return true
+	}
+	return false
+}
+
 func sourcesForPod(filter ContainerFilter, pod *v1.Pod) (nsname.NSName, map[eventSource]bool) {
 	id := nsname.ForObject(pod)
 	sources := make(map[eventSource]bool)
@@ -39,6 +47,13 @@ func sourcesForPod(filter ContainerFilter, pod *v1.Pod) (nsname.NSName, map[even
 	for _, cstatus := range pod.Status.ContainerStatuses {
 		if filter.Accept(cstatus) {
 			source := eventSource{id, cstatus.Name, pod.Spec.NodeName}
+			sources[source] = true
+		}
+	}
+
+	for _, icstatus := range pod.Status.InitContainerStatuses {
+		if filter.AcceptInitContainer(icstatus) {
+			source := eventSource{id, icstatus.Name, pod.Spec.NodeName}
 			sources[source] = true
 		}
 	}
