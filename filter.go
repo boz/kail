@@ -18,16 +18,8 @@ func NewContainerFilter(names []string) ContainerFilter {
 type containerFilter []string
 
 func (cf containerFilter) Accept(cs v1.ContainerStatus) bool {
-	if !cs.Ready {
-		return false
-	}
-	if len(cf) == 0 {
+	if cs.State.Running != nil {
 		return true
-	}
-	for _, name := range cf {
-		if name == cs.Name {
-			return true
-		}
 	}
 	return false
 }
@@ -39,6 +31,13 @@ func sourcesForPod(filter ContainerFilter, pod *v1.Pod) (nsname.NSName, map[even
 	for _, cstatus := range pod.Status.ContainerStatuses {
 		if filter.Accept(cstatus) {
 			source := eventSource{id, cstatus.Name, pod.Spec.NodeName}
+			sources[source] = true
+		}
+	}
+
+	for _, icstatus := range pod.Status.InitContainerStatuses {
+		if filter.Accept(icstatus) {
+			source := eventSource{id, icstatus.Name, pod.Spec.NodeName}
 			sources[source] = true
 		}
 	}

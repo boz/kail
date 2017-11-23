@@ -21,6 +21,13 @@ spec:
         app: api
         tier: frontend
     spec:
+      initContainers:
+      - name: init
+        image: busybox
+        command:
+        - /bin/sh
+        - -c
+        - i=0; until [ $i -gt 10 ]; do echo "INIT $i"; sleep 1; i=$((i + 1)); done
       containers:
       - name: nginx
         image: busybox
