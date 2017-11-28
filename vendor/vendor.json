@@ -453,6 +453,12 @@
 			"revisionTime": "2017-09-10T13:46:14Z"
 		},
 		{
+			"checksumSHA1": "LuFv4/jlrmFNnDb/5SCSEPAM9vU=",
+			"path": "github.com/pmezard/go-difflib/difflib",
+			"revision": "792786c7400a136282c1664665ae0a8db921c6c2",
+			"revisionTime": "2016-01-10T10:55:54Z"
+		},
+		{
 			"checksumSHA1": "I5DMrLM0FpmvG81tAWZ3zoydBIo=",
 			"path": "github.com/sirupsen/logrus",
 			"revision": "181d419aa9e2223811b824e8f0b4af96f9ba9302",
@@ -463,6 +469,12 @@
 			"path": "github.com/spf13/pflag",
 			"revision": "e57e3eeb33f795204c1ca35f56c44f83227c6e66",
 			"revisionTime": "2017-05-08T18:43:26Z"
+		},
+		{
+			"checksumSHA1": "mGbTYZ8dHVTiPTTJu3ktp+84pPI=",
+			"path": "github.com/stretchr/testify/assert",
+			"revision": "2aa2c176b9dab406a6970f6a55f513e8a8c8b18f",
+			"revisionTime": "2017-08-14T20:04:35Z"
 		},
 		{
 			"checksumSHA1": "9Zw986fuQM/hCoVd8vmHoSM+8sU=",

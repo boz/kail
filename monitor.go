@@ -17,7 +17,8 @@ import (
 )
 
 const (
-	logBufsiz = 1024
+	logBufsiz          = 1024 * 16 // 16k max message size
+	monitorDeliverWait = time.Millisecond
 )
 
 var (
@@ -161,6 +162,8 @@ func (m *_monitor) readloop(
 	defer stream.Close()
 
 	logbuf := make([]byte, logBufsiz)
+	buffer := newBuffer(m.source)
+
 	for ctx.Err() == nil {
 		nread, err := stream.Read(logbuf)
 
@@ -178,16 +181,30 @@ func (m *_monitor) readloop(
 		log := logbuf[0:nread]
 
 		if bytes.Compare(canaryLog, log) == 0 {
+			m.log.Warnf("received 'unexpect stream type'")
 			continue
 		}
 
-		event := newEvent(m.source, log)
-
-		select {
-		case m.eventch <- event:
-		default:
-			m.log.Warnf("event buffer full. dropping logs %v", nread)
+		if events := buffer.process(log); len(events) > 0 {
+			m.deliverEvents(ctx, events)
 		}
+
 	}
 	return nil
+}
+
+func (m *_monitor) deliverEvents(ctx context.Context, events []Event) {
+	t := time.NewTimer(monitorDeliverWait)
+	defer t.Stop()
+
+	for i, event := range events {
+		select {
+		case m.eventch <- event:
+		case <-t.C:
+			m.log.Warnf("event buffer full. dropping %v logs", len(events)-i)
+			return
+		case <-ctx.Done():
+			return
+		}
+	}
 }
