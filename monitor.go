@@ -181,7 +181,7 @@ func (m *_monitor) readloop(
 		log := logbuf[0:nread]
 
 		if bytes.Compare(canaryLog, log) == 0 {
-			m.log.Warnf("received 'unexpect stream type'")
+			m.log.Debugf("received 'unexpect stream type'")
 			continue
 		}
 
