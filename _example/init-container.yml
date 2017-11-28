@@ -1,0 +1,45 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: init-container
+---
+apiVersion: extensions/v1beta1
+kind: ReplicaSet
+metadata:
+  namespace: init-container
+  name: workers
+spec:
+  selector:
+    matchLabels:
+      app: api
+      tier: backend
+      component: worker
+  template:
+    metadata:
+      name: workers
+      labels:
+        app: api
+        tier: backend
+        component: worker
+    spec:
+      initContainers:
+      - name: init
+        image: busybox
+        command:
+        - /bin/sh
+        - "-c"
+        - i=0; while [ $i -lt 10 ]; do echo "INIT $i"; sleep 1; i=$((i + 1)); done
+      containers:
+      - name: statistics
+        image: busybox
+        command:
+        - /bin/sh
+        - "-c"
+        - i=0; while true; do echo "processing user $1 stats..."; sleep 1; i=$((i + 1)); done
+      - name: thumbnails
+        image: busybox
+        command:
+        - /bin/sh
+        - "-c"
+        - i=0; while true; do echo "creating user $1 thumbnail..."; sleep 2; i=$((i + 1)); done
