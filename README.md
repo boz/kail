@@ -20,7 +20,7 @@ Flag | Selection
 `--rs NAME` | match pods belonging to the given replica set
 `--deploy NAME` | match pods belonging to the given deployment
 `--node NODE-NAME` | match pods running on the given node
-`--ingress NAME` | match pods belonging to services targeted by the given ingress
+`--ing NAME` | match pods belonging to services targeted by the given ingress
 `--containers CONTAINER-NAME` | restrict which containers logs are shown for
 `--ignore LABEL-SELECTOR` | Ignore pods that the selector matches. (default: `kail.ignore=true`)
 
