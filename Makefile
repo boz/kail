@@ -40,7 +40,7 @@ install-libs:
 	govendor install +vendor,^program
 
 install-deps:
-	go get github.com/kardianos/govendor
+	go get -u github.com/kardianos/govendor
 	govendor sync
 
 release:
