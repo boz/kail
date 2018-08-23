@@ -1,4 +1,4 @@
-FROM alpine
+FROM busybox:glibc
 
 ADD ./kail-linux /kail
 

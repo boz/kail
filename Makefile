@@ -3,12 +3,7 @@ DOCKER_IMAGE ?= kail
 DOCKER_REPO  ?= abozanich/$(DOCKER_IMAGE)
 DOCKER_TAG   ?= latest
 
-ifeq ($(shell uname -s),Linux)
-	BUILD_ENV   = CC=$(shell which musl-gcc)
-	LDFLAGS     = -w -linkmode external -extldflags "-static"
-else
-	BUILD_ENV = GOOS=linux GOARCH=amd64
-endif
+BUILD_ENV = GOOS=linux GOARCH=amd64
 
 ifdef TRAVIS
 	LDFLAGS += -X main.version=$(TRAVIS_BRANCH) -X main.commit=$(TRAVIS_COMMIT)
@@ -23,7 +18,7 @@ build-linux:
 test:
 	govendor test +local
 
-test-full: build
+test-full: build image
 	govendor test -v -race +local
 
 image: build-linux
