@@ -72,6 +72,9 @@ var (
 	flagGlogVmodule = kingpin.Flag("glog-vmodule", "glog -vmodule flag").
 			Default("").
 			String()
+	flagJsonPP = kingpin.Flag("jpp", "Json Pretty Print. If log lines are JSON, then pretty print them.").
+		Default("false").
+		Bool()
 )
 
 func main() {
@@ -270,7 +273,7 @@ func createController(
 
 func streamLogs(controller kail.Controller) {
 
-	writer := kail.NewWriter(os.Stdout)
+	writer := kail.NewWriter(os.Stdout, *flagJsonPP)
 
 	for {
 		select {

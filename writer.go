@@ -5,6 +5,9 @@ import (
 	"io"
 
 	"github.com/fatih/color"
+	"encoding/json"
+	"bytes"
+	"io/ioutil"
 )
 
 var (
@@ -16,12 +19,16 @@ type Writer interface {
 	Fprint(w io.Writer, event Event) error
 }
 
-func NewWriter(out io.Writer) Writer {
-	return &writer{out}
+func NewWriter(out io.Writer, jsonPP bool) Writer {
+	return &writer{
+		out: out,
+		jsonPP: jsonPP,
+	}
 }
 
 type writer struct {
 	out io.Writer
+	jsonPP bool
 }
 
 func (w *writer) Print(ev Event) error {
@@ -40,6 +47,13 @@ func (w *writer) Fprint(out io.Writer, ev Event) error {
 
 	log := ev.Log()
 
+	if w.jsonPP {
+		pp := tryJsonPrettyPrint(log)
+		if pp != nil {
+			log = pp
+		}
+	}
+
 	if _, err := out.Write(log); err != nil {
 		return err
 	}
@@ -57,4 +71,17 @@ func (w *writer) prefix(ev Event) string {
 		ev.Source().Namespace(),
 		ev.Source().Name(),
 		ev.Source().Container())
+}
+
+func tryJsonPrettyPrint(o []byte) []byte {
+	t := &bytes.Buffer{}
+	err := json.Indent(t, o, "", "    ")
+	if err != nil {
+		return nil
+	}
+	bb, err := ioutil.ReadAll(t)
+	if err != nil {
+		return nil
+	}
+	return bb
 }
