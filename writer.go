@@ -7,7 +7,6 @@ import (
 	"github.com/fatih/color"
 	"encoding/json"
 	"bytes"
-	"io/ioutil"
 )
 
 var (
@@ -79,9 +78,5 @@ func tryJsonPrettyPrint(o []byte) []byte {
 	if err != nil {
 		return nil
 	}
-	bb, err := ioutil.ReadAll(t)
-	if err != nil {
-		return nil
-	}
-	return bb
+	return t.Bytes()
 }

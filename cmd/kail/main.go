@@ -72,7 +72,7 @@ var (
 	flagGlogVmodule = kingpin.Flag("glog-vmodule", "glog -vmodule flag").
 			Default("").
 			String()
-	flagJsonPP = kingpin.Flag("jpp", "Json Pretty Print. If log lines are JSON, then pretty print them.").
+	flagJsonPP = kingpin.Flag("json-pp", "Json Pretty Print. If log lines are JSON, then pretty print them.").
 		Default("false").
 		Bool()
 )
