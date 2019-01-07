@@ -12,16 +12,16 @@ With no arguments, kail matches all pods in the cluster.  You can control the ma
 
 Flag | Selection
 --- | ---
-`--label LABEL-SELECTOR` | match pods based on a [standard label selector](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/)
-`--pod NAME` | match pods by name
-`--ns NAMESPACE-NAME` | match pods in the given namespace
+`-l, --label LABEL-SELECTOR` | match pods based on a [standard label selector](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/)
+`-p, --pod NAME` | match pods by name
+`-n, --ns NAMESPACE-NAME` | match pods in the given namespace
 `--svc NAME` | match pods belonging to the given service
 `--rc NAME` | match pods belonging to the given replication controller
 `--rs NAME` | match pods belonging to the given replica set
-`--deploy NAME` | match pods belonging to the given deployment
+`-d, --deploy NAME` | match pods belonging to the given deployment
 `--node NODE-NAME` | match pods running on the given node
 `--ing NAME` | match pods belonging to services targeted by the given ingress
-`--containers CONTAINER-NAME` | restrict which containers logs are shown for
+`-c, --containers CONTAINER-NAME` | restrict which containers logs are shown for
 `--ignore LABEL-SELECTOR` | Ignore pods that the selector matches. (default: `kail.ignore=true`)
 
 #### Name Selection
@@ -58,7 +58,7 @@ $ kail --svc frontend --deploy webapp
 
 Flag | Description
 --- | ---
-`--help` | Display help and usage
+`-h, --help` | Display help and usage
 `--context CONTEXT-NAME` | Use the given Kubernetes context
 `--dry-run` | Print initial matched pods and exit
 `--log-level LEVEL` | Set the logging level (default: `error`)
