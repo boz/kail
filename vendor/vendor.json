@@ -211,12 +211,6 @@
 			"revisionTime": "2017-07-04T05:34:23Z"
 		},
 		{
-			"checksumSHA1": "aEU9IPbfuS1PWY2T26gn41y+feA=",
-			"path": "github.com/fatih/color",
-			"revision": "67c513e5729f918f5e69786686770c27141a4490",
-			"revisionTime": "2017-08-04T15:04:06Z"
-		},
-		{
 			"checksumSHA1": "ImX1uv6O09ggFeBPUJJ2nu7MPSA=",
 			"path": "github.com/ghodss/yaml",
 			"revision": "0ca9ea5df5451ffdf184b4428c902747c2c11cd7",
@@ -387,6 +381,12 @@
 			"path": "github.com/howeyc/gopass",
 			"revision": "bf9dde6d0d2c004a008c27aaee91170c786f6db8",
 			"revisionTime": "2017-01-09T16:22:49Z"
+		},
+		{
+			"checksumSHA1": "dO1kUjACBdfT6LLmIU1wEq40sk4=",
+			"path": "github.com/hpcloud/golor",
+			"revision": "dc1b58c471a0a01808e0c292210f4ce0efe50f83",
+			"revisionTime": "2015-09-14T22:10:10Z"
 		},
 		{
 			"checksumSHA1": "66lykxpWgSmQodnhkADqn6tnroQ=",

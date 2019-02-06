@@ -4,11 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fatih/color"
-)
-
-var (
-	prefixColor = color.New(color.FgHiWhite, color.Bold)
+	"github.com/hpcloud/golor"
 )
 
 type Writer interface {
@@ -31,10 +27,9 @@ func (w *writer) Print(ev Event) error {
 func (w *writer) Fprint(out io.Writer, ev Event) error {
 	prefix := w.prefix(ev)
 
-	if _, err := prefixColor.Fprint(out, prefix); err != nil {
-		return err
-	}
-	if _, err := prefixColor.Fprint(out, ": "); err != nil {
+	colorized := golor.Colorize(prefix+":", golor.AssignColor(prefix), -1)
+
+	if _, err := out.Write([]byte(colorized + " ")); err != nil {
 		return err
 	}
 
