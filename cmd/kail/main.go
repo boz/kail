@@ -85,6 +85,7 @@ func main() {
 	kingpin.Command("version", "Display current version")
 	kingpin.CommandLine.HelpFlag.Short('h')
 	kingpin.CommandLine.Help = "Tail for kubernetes pods"
+	kingpin.CommandLine.DefaultEnvars()
 	cmd := kingpin.Parse()
 
 	if cmd == "version" {

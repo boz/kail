@@ -8,6 +8,8 @@ Kubernetes tail.  Streams logs from all containers of all matched pods.  Match p
 
 With no arguments, kail matches all pods in the cluster.  You can control the matching pods with arguments which select pods based on various criteria.
 
+All flags can be set by an environment variable - `KAIL_POD=foo kail` is the same as `kail --pod foo`.
+
 ### Selectors
 
 Flag | Selection
