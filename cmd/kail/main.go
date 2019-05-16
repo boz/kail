@@ -14,7 +14,6 @@ import (
 	logutil_logrus "github.com/boz/go-logutil/logrus"
 	"github.com/boz/kail"
 	"github.com/boz/kcache/nsname"
-	"github.com/boz/kcache/util"
 	"github.com/sirupsen/logrus"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -46,6 +45,10 @@ var (
 
 	flagContext = kingpin.Flag("context", "kubernetes context").PlaceHolder("CONTEXT-NAME").String()
 
+	flagCurrentNS = kingpin.Flag("current-ns", "use namespace from current context").
+			Default("false").
+			Bool()
+
 	flagContainers = kingpin.Flag("containers", "containers").Short('c').PlaceHolder("NAME").Strings()
 
 	flagDryRun = kingpin.Flag("dry-run", "print matching pods and exit").
@@ -72,6 +75,10 @@ var (
 	flagGlogVmodule = kingpin.Flag("glog-vmodule", "glog -vmodule flag").
 			Default("").
 			String()
+)
+
+var (
+	currentNS = ""
 )
 
 func main() {
@@ -165,14 +172,36 @@ func createLog() logutil.Log {
 }
 
 func createKubeClient() (kubernetes.Interface, *rest.Config) {
-	overrides := &clientcmd.ConfigOverrides{}
 
+	config, err := rest.InClusterConfig()
+	switch {
+	case err == nil:
+		cs, err := kubernetes.NewForConfig(config)
+		kingpin.FatalIfError(err, "Error configuring kubernetes connection")
+		return cs, config
+	case config != nil:
+		kingpin.Fatalf("Error configuring in-cluster config: %v", err)
+	}
+
+	overrides := &clientcmd.ConfigOverrides{}
 	if flagContext != nil {
 		overrides.CurrentContext = *flagContext
 	}
 
-	cs, rc, err := util.KubeClient(overrides)
-	kingpin.FatalIfError(err, "Error configuring kubernetes connection")
+	cc := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+		clientcmd.NewDefaultClientConfigLoadingRules(), overrides)
+
+	if *flagCurrentNS {
+		ns, _, err := cc.Namespace()
+		kingpin.FatalIfError(err, "Error determining current namespace")
+		currentNS = ns
+	}
+
+	rc, err := cc.ClientConfig()
+	kingpin.FatalIfError(err, "Error determining client config")
+
+	cs, err := kubernetes.NewForConfig(rc)
+	kingpin.FatalIfError(err, "Error building kubernetes config")
 
 	_, err = cs.CoreV1().Namespaces().List(metav1.ListOptions{})
 	kingpin.FatalIfError(err, "Can't connnect to kubernetes")
@@ -193,6 +222,10 @@ func createDSBuilder() kail.DSBuilder {
 
 	if ids := parseIds("pod", *flagPod); len(ids) > 0 {
 		dsb = dsb.WithPods(ids...)
+	}
+
+	if *flagCurrentNS && currentNS != "" {
+		dsb = dsb.WithNamespace(currentNS)
 	}
 
 	if len(*flagNs) > 0 {
