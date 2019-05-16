@@ -26,6 +26,7 @@ Flag | Selection
 `-c, --containers CONTAINER-NAME` | restrict which containers logs are shown for
 `--ignore LABEL-SELECTOR` | Ignore pods that the selector matches. (default: `kail.ignore=true`)
 `--current-ns` | Match pods in the namespace specified in Kubernetes' "current context"
+`--ignore-ns NAME` | Ignore pods in the given namespaces.  Overridden by `--ns`, `--current-ns`. (default: `kube-system`)
 
 #### Name Selection
 

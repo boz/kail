@@ -23,6 +23,7 @@ type DSBuilder interface {
 	WithSelectors(selectors ...labels.Selector) DSBuilder
 	WithPods(id ...nsname.NSName) DSBuilder
 	WithNamespace(name ...string) DSBuilder
+	WithIgnoreNamespace(name ...string) DSBuilder
 	WithService(id ...nsname.NSName) DSBuilder
 	WithNode(name ...string) DSBuilder
 	WithRC(id ...nsname.NSName) DSBuilder
@@ -43,6 +44,7 @@ type dsBuilder struct {
 	selectors   []labels.Selector
 	pods        []nsname.NSName
 	namespaces  []string
+	ignoreNS    []string
 	services    []nsname.NSName
 	nodes       []string
 	rcs         []nsname.NSName
@@ -69,6 +71,11 @@ func (b *dsBuilder) WithPods(id ...nsname.NSName) DSBuilder {
 
 func (b *dsBuilder) WithNamespace(name ...string) DSBuilder {
 	b.namespaces = append(b.namespaces, name...)
+	return b
+}
+
+func (b *dsBuilder) WithIgnoreNamespace(name ...string) DSBuilder {
+	b.ignoreNS = append(b.ignoreNS, name...)
 	return b
 }
 
@@ -162,9 +169,12 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 		}
 	}
 
+	namespaces := make(map[string]bool, len(b.namespaces))
+
 	if sz := len(b.namespaces); sz > 0 {
 		ids := make([]nsname.NSName, 0, sz)
 		for _, ns := range b.namespaces {
+			namespaces[ns] = true
 			ids = append(ids, nsname.New(ns, ""))
 		}
 
@@ -172,6 +182,21 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 		if err != nil {
 			ds.closeAll()
 			return nil, log.Err(err, "namespace filter")
+		}
+	}
+
+	if sz := len(b.ignoreNS); sz > 0 {
+		ids := make([]nsname.NSName, 0, sz)
+		for _, ns := range b.ignoreNS {
+			if !namespaces[ns] {
+				ids = append(ids, nsname.New(ns, ""))
+			}
+		}
+
+		ds.pods, err = ds.pods.CloneWithFilter(filter.Not(filter.NSName(ids...)))
+		if err != nil {
+			ds.closeAll()
+			return nil, log.Err(err, "ignore namespace filter")
 		}
 	}
 
