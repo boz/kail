@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"os"
 	"os/signal"
@@ -68,14 +67,6 @@ var (
 			PlaceHolder("DURATION").
 			Default("1s").
 			Duration()
-
-	flagGlogV = kingpin.Flag("glog-v", "glog -v value").
-			Default("0").
-			String()
-
-	flagGlogVmodule = kingpin.Flag("glog-vmodule", "glog -vmodule flag").
-			Default("").
-			String()
 )
 
 var (
@@ -163,14 +154,6 @@ func createLog() logutil.Log {
 	parent := logrus.New()
 	parent.Level = lvl
 	parent.Out = file
-
-	// XXX: fucking glog.
-	os.Args = []string{os.Args[0],
-		"-logtostderr=true",
-		"-v=" + *flagGlogV,
-		"-vmodule=" + *flagGlogVmodule,
-	}
-	flag.Parse()
 
 	return logutil_logrus.New(parent).WithComponent("kail.main")
 }

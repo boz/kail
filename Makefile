@@ -12,7 +12,7 @@ ifdef TRAVIS
 endif
 
 build:
-	$(GO) build ./...
+	$(GO) build -o kail ./cmd/kail
 
 build-linux:
 	$(BUILD_ENV) $(GO) build --ldflags '$(LDFLAGS)'  -o kail-linux ./cmd/kail
