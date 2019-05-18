@@ -5,21 +5,23 @@ DOCKER_TAG   ?= latest
 
 BUILD_ENV = GOOS=linux GOARCH=amd64
 
+GO = GO111MODULE=on go
+
 ifdef TRAVIS
 	LDFLAGS += -X main.version=$(TRAVIS_BRANCH) -X main.commit=$(TRAVIS_COMMIT)
 endif
 
 build:
-	govendor build -i +program
+	$(GO) build ./...
 
 build-linux:
-	$(BUILD_ENV) go build --ldflags '$(LDFLAGS)'  -o kail-linux ./cmd/kail
+	$(BUILD_ENV) $(GO) build --ldflags '$(LDFLAGS)'  -o kail-linux ./cmd/kail
 
 test:
-	govendor test +local
+	$(GO) test ./...
 
 test-full: build image
-	govendor test -v -race +local
+	$(GO) test -v -race ./...
 
 image: build-linux
 	docker build -t $(DOCKER_IMAGE) .
@@ -31,12 +33,8 @@ image-push: image
 	docker tag $(DOCKER_IMAGE) $(DOCKER_REPO):$(DOCKER_TAG)
 	docker push $(DOCKER_REPO):$(DOCKER_TAG)
 
-install-libs:
-	govendor install +vendor,^program
-
 install-deps:
-	go get -u github.com/kardianos/govendor
-	govendor sync
+	$(GO) mod download
 
 release:
 	GITHUB_TOKEN=$$GITHUB_REPO_TOKEN goreleaser -f .goreleaser.yml
@@ -47,5 +45,5 @@ clean:
 .PHONY: build build-linux \
 	test test-full \
 	image image-minikube image-push \
-	install-libs install-deps \
+	install-deps \
 	clean

@@ -5,7 +5,7 @@ set -o pipefail
 
 if [ "$TRAVIS_REPO_SLUG"  != "boz/kail" -o \
      "$TRAVIS_EVENT_TYPE" != "push"     -o \
-     "$TRAVIS_GO_VERSION" != "1.10"      ]; then
+     "$TRAVIS_GO_VERSION" != "1.12"      ]; then
   exit 0
 fi
 
