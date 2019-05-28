@@ -36,3 +36,10 @@ changelog:
     exclude:
     - '^docs:'
     - '^test:'
+
+release:
+  github:
+    owner: boz
+    name: kail
+  prerelease: false
+  draft: false
