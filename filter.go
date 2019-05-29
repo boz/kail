@@ -18,7 +18,7 @@ func NewContainerFilter(names []string) ContainerFilter {
 type containerFilter []string
 
 func (cf containerFilter) Accept(cs v1.ContainerStatus) bool {
-	if cs.State.Running == nil {
+	if cs.State.Running == nil && cs.State.Terminated == nil {
 		return false
 	}
 	if len(cf) == 0 {
