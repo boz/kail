@@ -56,7 +56,6 @@ var (
 			Bool()
 
 	flagLogFile = kingpin.Flag("log-file", "log file output").
-			Default("/dev/stderr").
 			String()
 
 	flagLogLevel = kingpin.Flag("log-level", "log level").
@@ -148,12 +147,16 @@ func createLog() logutil.Log {
 	lvl, err := logrus.ParseLevel(*flagLogLevel)
 	kingpin.FatalIfError(err, "Invalid log level")
 
-	file, err := os.OpenFile(*flagLogFile, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
-	kingpin.FatalIfError(err, "Error opening log file")
-
 	parent := logrus.New()
 	parent.Level = lvl
-	parent.Out = file
+
+	if *flagLogFile != "" {
+		file, err := os.OpenFile(*flagLogFile, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
+		kingpin.FatalIfError(err, "Error opening log file")
+		parent.Out = file
+	} else {
+		parent.Out = os.Stderr
+	}
 
 	return logutil_logrus.New(parent).WithComponent("kail.main")
 }
