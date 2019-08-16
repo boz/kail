@@ -125,7 +125,13 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 
 	log = log.WithComponent("kail.ds.builder")
 
-	base, err := pod.NewController(ctx, log, cs, "")
+	ns := ""
+	// if we only ask for one namespace do not try to get resources at cluster level
+	// we may not have permissions
+	if len(b.namespaces) == 1 {
+		ns = b.namespaces[0]
+	}
+	base, err := pod.NewController(ctx, log, cs, ns)
 	if err != nil {
 		return nil, log.Err(err, "base pod controller")
 	}
