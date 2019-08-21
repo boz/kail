@@ -125,13 +125,13 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 
 	log = log.WithComponent("kail.ds.builder")
 
-	ns := ""
+	namespace := ""
 	// if we only ask for one namespace do not try to get resources at cluster level
 	// we may not have permissions
 	if len(b.namespaces) == 1 {
-		ns = b.namespaces[0]
+		namespace = b.namespaces[0]
 	}
-	base, err := pod.NewController(ctx, log, cs, ns)
+	base, err := pod.NewController(ctx, log, cs, namespace)
 	if err != nil {
 		return nil, log.Err(err, "base pod controller")
 	}
@@ -215,7 +215,7 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 	}
 
 	if len(b.services) != 0 {
-		ds.servicesBase, err = service.NewController(ctx, log, cs, "")
+		ds.servicesBase, err = service.NewController(ctx, log, cs, namespace)
 		if err != nil {
 			ds.closeAll()
 			return nil, log.Err(err, "service base controller")
@@ -235,7 +235,7 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 	}
 
 	if len(b.rcs) != 0 {
-		ds.rcsBase, err = replicationcontroller.NewController(ctx, log, cs, "")
+		ds.rcsBase, err = replicationcontroller.NewController(ctx, log, cs, namespace)
 		if err != nil {
 			ds.closeAll()
 			return nil, log.Err(err, "rc base controller")
@@ -255,7 +255,7 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 	}
 
 	if len(b.rss) != 0 {
-		ds.rssBase, err = replicaset.NewController(ctx, log, cs, "")
+		ds.rssBase, err = replicaset.NewController(ctx, log, cs, namespace)
 		if err != nil {
 			ds.closeAll()
 			return nil, log.Err(err, "rs base controller")
@@ -275,7 +275,7 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 	}
 
 	if len(b.dss) != 0 {
-		ds.dssBase, err = daemonset.NewController(ctx, log, cs, "")
+		ds.dssBase, err = daemonset.NewController(ctx, log, cs, namespace)
 		if err != nil {
 			ds.closeAll()
 			return nil, log.Err(err, "ds base controller")
@@ -295,7 +295,7 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 	}
 
 	if len(b.deployments) != 0 {
-		ds.deploymentsBase, err = deployment.NewController(ctx, log, cs, "")
+		ds.deploymentsBase, err = deployment.NewController(ctx, log, cs, namespace)
 		if err != nil {
 			ds.closeAll()
 			return nil, log.Err(err, "deployment base controller")
@@ -315,14 +315,14 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 	}
 
 	if len(b.ingresses) != 0 {
-		ds.ingressesBase, err = ingress.NewController(ctx, log, cs, "")
+		ds.ingressesBase, err = ingress.NewController(ctx, log, cs, namespace)
 		if err != nil {
 			ds.closeAll()
 			return nil, log.Err(err, "ingress base controller")
 		}
 
 		if ds.servicesBase == nil {
-			ds.servicesBase, err = service.NewController(ctx, log, cs, "")
+			ds.servicesBase, err = service.NewController(ctx, log, cs, namespace)
 			if err != nil {
 				ds.closeAll()
 				return nil, log.Err(err, "service base controller")
