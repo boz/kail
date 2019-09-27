@@ -12,7 +12,9 @@ import (
 	logutil "github.com/boz/go-logutil"
 	logutil_logrus "github.com/boz/go-logutil/logrus"
 	"github.com/boz/kail"
+	"github.com/boz/kail/writers"
 	"github.com/boz/kcache/nsname"
+	"github.com/rs/zerolog"
 	"github.com/sirupsen/logrus"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -46,12 +48,6 @@ var (
 	flagNode        = kingpin.Flag("node", "node").PlaceHolder("NAME").Strings()
 	flagIng         = kingpin.Flag("ing", "ingress").PlaceHolder("NAME").Strings()
 
-	flagOutput = kingpin.Flag("output", "Log output mode (default, raw, json, or json-pretty)").
-			Short('o').
-			PlaceHolder("default").
-			Default("default").
-			String()
-
 	flagContext = kingpin.Flag("context", "kubernetes context").PlaceHolder("CONTEXT-NAME").String()
 
 	flagCurrentNS = kingpin.Flag("current-ns", "use namespace from current context").
@@ -75,6 +71,25 @@ var (
 			PlaceHolder("DURATION").
 			Default("1s").
 			Duration()
+
+	flagOutput = kingpin.Flag("output", "Log output mode (default, raw, json, or json-pretty, zerolog)").
+			Short('o').
+			PlaceHolder("default").
+			Default("default").
+			String()
+
+	flagZerologTimestampFieldName = kingpin.Flag("zerolog-timestamp-field", "sets the zerolog timestamp field name, works with --output=zerolog").
+					Default("time").
+					String()
+	flagZerologLevelFieldName = kingpin.Flag("zerolog-level-field", "sets the zerolog level field name, works with --output=zerolog").
+					Default("level").
+					String()
+	flagZerologMessageFieldName = kingpin.Flag("zerolog-message-field", "sets the zerolog message field name, works with --output=zerolog").
+					Default("message").
+					String()
+	flagZerologErrorFieldName = kingpin.Flag("zerolog-error-field", "sets the zerolog error field name, works with --output=zerolog").
+					Default("error").
+					String()
 )
 
 var (
@@ -316,18 +331,23 @@ func createController(
 }
 
 func streamLogs(controller kail.Controller) {
-
-	var writer kail.Writer
+	var writer writers.Writer
 
 	switch *flagOutput {
 	case "default":
-		writer = kail.NewWriter(os.Stdout)
-	case "json":
-		writer = kail.NewJSONWriter(os.Stdout)
-	case "json-pretty":
-		writer = kail.NewJSONPrettyWriter(os.Stdout)
+		writer = writers.NewWriter(os.Stdout)
 	case "raw":
-		writer = kail.NewRawWriter(os.Stdout)
+		writer = writers.NewRawWriter(os.Stdout)
+	case "json":
+		writer = writers.NewJSONWriter(os.Stdout)
+	case "json-pretty":
+		writer = writers.NewJSONPrettyWriter(os.Stdout)
+	case "zerolog":
+		zerolog.TimestampFieldName = *flagZerologTimestampFieldName
+		zerolog.LevelFieldName = *flagZerologLevelFieldName
+		zerolog.MessageFieldName = *flagZerologMessageFieldName
+		zerolog.ErrorFieldName = *flagZerologErrorFieldName
+		writer = writers.NewZerologWriter(os.Stdout)
 	default:
 		kingpin.Fatalf("Invalid output: '%v'", *flagOutput)
 	}
