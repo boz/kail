@@ -10,8 +10,10 @@ require (
 	github.com/fatih/color v1.7.0
 	github.com/googleapis/gnostic v0.0.0-20170807220725-57b029087370 // indirect
 	github.com/goreleaser/godownloader v0.0.0-20190525212044-f9a1d47be7eb
+	github.com/rs/zerolog v1.15.0
 	github.com/sirupsen/logrus v1.4.1
 	github.com/stretchr/testify v1.3.0
+	github.com/yalp/jsonpath v0.0.0-20180802001716-5cc68e5049a0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	k8s.io/api v0.0.0-20190515023547-db5a9d1c40eb
 	k8s.io/apimachinery v0.0.0-20190515023456-b74e4c97951f
