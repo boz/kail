@@ -15,6 +15,7 @@ import (
 	"github.com/boz/kcache/nsname"
 	"github.com/sirupsen/logrus"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
@@ -194,7 +195,9 @@ func createKubeClient() (kubernetes.Interface, *rest.Config) {
 	kingpin.FatalIfError(err, "Error building kubernetes config")
 
 	_, err = cs.CoreV1().Namespaces().List(metav1.ListOptions{})
-	kingpin.FatalIfError(err, "Can't connnect to kubernetes")
+	if err != nil && !apierrors.IsForbidden(err) {
+		kingpin.FatalIfError(err, "Can't connnect to kubernetes")
+	}
 
 	return cs, rc
 }
