@@ -44,6 +44,12 @@ var (
 	flagNode       = kingpin.Flag("node", "node").PlaceHolder("NAME").Strings()
 	flagIng        = kingpin.Flag("ing", "ingress").PlaceHolder("NAME").Strings()
 
+	flagOutput = kingpin.Flag("output", "Log output mode (default, raw, or json)").
+			Short('o').
+			PlaceHolder("default").
+			Default("default").
+			String()
+
 	flagContext = kingpin.Flag("context", "kubernetes context").PlaceHolder("CONTEXT-NAME").String()
 
 	flagCurrentNS = kingpin.Flag("current-ns", "use namespace from current context").
@@ -301,7 +307,18 @@ func createController(
 
 func streamLogs(controller kail.Controller) {
 
-	writer := kail.NewWriter(os.Stdout)
+	var writer kail.Writer
+
+	switch *flagOutput {
+	case "default":
+		writer = kail.NewWriter(os.Stdout)
+	case "json":
+		writer = kail.NewJSONWriter(os.Stdout)
+	case "raw":
+		writer = kail.NewRawWriter(os.Stdout)
+	default:
+		kingpin.Fatalf("Invalid output: '%v'", *flagOutput)
+	}
 
 	for {
 		select {
