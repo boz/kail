@@ -44,7 +44,7 @@ var (
 	flagNode       = kingpin.Flag("node", "node").PlaceHolder("NAME").Strings()
 	flagIng        = kingpin.Flag("ing", "ingress").PlaceHolder("NAME").Strings()
 
-	flagOutput = kingpin.Flag("output", "Log output mode (default, raw, or json)").
+	flagOutput = kingpin.Flag("output", "Log output mode (default, raw, json, or json-pretty)").
 			Short('o').
 			PlaceHolder("default").
 			Default("default").
@@ -314,6 +314,8 @@ func streamLogs(controller kail.Controller) {
 		writer = kail.NewWriter(os.Stdout)
 	case "json":
 		writer = kail.NewJSONWriter(os.Stdout)
+	case "json-pretty":
+		writer = kail.NewJSONPrettyWriter(os.Stdout)
 	case "raw":
 		writer = kail.NewRawWriter(os.Stdout)
 	default:
