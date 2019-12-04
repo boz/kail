@@ -17,15 +17,23 @@ type Writer interface {
 }
 
 func NewWriter(out io.Writer) Writer {
-	return &writer{out}
+	return &writer{writerRaw{out}}
+}
+
+func NewRawWriter(out io.Writer) Writer {
+	return &writerRaw{out}
+}
+
+func NewJSONWriter(out io.Writer) Writer {
+	return &writerJSON{out}
 }
 
 type writer struct {
-	out io.Writer
+	writerRaw
 }
 
 func (w *writer) Print(ev Event) error {
-	return w.Fprint(w.out, ev)
+	return w.Fprint(w.writerRaw.out, ev)
 }
 
 func (w *writer) Fprint(out io.Writer, ev Event) error {
@@ -38,6 +46,25 @@ func (w *writer) Fprint(out io.Writer, ev Event) error {
 		return err
 	}
 
+	return w.writerRaw.Fprint(out, ev)
+}
+
+func (w *writer) prefix(ev Event) string {
+	return fmt.Sprintf("%v/%v[%v]",
+		ev.Source().Namespace(),
+		ev.Source().Name(),
+		ev.Source().Container())
+}
+
+type writerRaw struct {
+	out io.Writer
+}
+
+func (w *writerRaw) Print(ev Event) error {
+	return w.Fprint(w.out, ev)
+}
+
+func (w *writerRaw) Fprint(out io.Writer, ev Event) error {
 	log := ev.Log()
 
 	if _, err := out.Write(log); err != nil {
@@ -52,9 +79,37 @@ func (w *writer) Fprint(out io.Writer, ev Event) error {
 	return nil
 }
 
-func (w *writer) prefix(ev Event) string {
-	return fmt.Sprintf("%v/%v[%v]",
+type writerJSON struct {
+	out io.Writer
+}
+
+func (w *writerJSON) Print(ev Event) error {
+	return w.Fprint(w.out, ev)
+}
+
+func (w *writerJSON) Fprint(out io.Writer, ev Event) error {
+
+	log := ev.Log()
+
+	if sz := len(log); sz == 0 || log[sz-1] == byte('\n') {
+		log = log[:sz-1]
+	}
+
+	if log[0] != '{' && log[0] != '[' {
+		log = append([]byte{'"'}, log...)
+		log = append(log, '"')
+	}
+
+	if _, err := fmt.Fprintf(out,
+		`{"namespace":"%s","pod":"%s","container":"%s","message":%s}%s`,
 		ev.Source().Namespace(),
 		ev.Source().Name(),
-		ev.Source().Container())
+		ev.Source().Container(),
+		log,
+		"\n",
+	); err != nil {
+		return err
+	}
+
+	return nil
 }
