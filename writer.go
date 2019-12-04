@@ -1,6 +1,7 @@
 package kail
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 
@@ -25,7 +26,23 @@ func NewRawWriter(out io.Writer) Writer {
 }
 
 func NewJSONWriter(out io.Writer) Writer {
-	return &writerJSON{out}
+	return &writerJSON{
+		out: out,
+		getEnc: func(o io.Writer) *json.Encoder {
+			return json.NewEncoder(o)
+		},
+	}
+}
+
+func NewJSONPrettyWriter(out io.Writer) Writer {
+	return &writerJSON{
+		out: out,
+		getEnc: func(o io.Writer) *json.Encoder {
+			e := json.NewEncoder(o)
+			e.SetIndent("", "  ")
+			return e
+		},
+	}
 }
 
 type writer struct {
@@ -80,7 +97,8 @@ func (w *writerRaw) Fprint(out io.Writer, ev Event) error {
 }
 
 type writerJSON struct {
-	out io.Writer
+	out    io.Writer
+	getEnc func(io.Writer) *json.Encoder
 }
 
 func (w *writerJSON) Print(ev Event) error {
@@ -90,26 +108,27 @@ func (w *writerJSON) Print(ev Event) error {
 func (w *writerJSON) Fprint(out io.Writer, ev Event) error {
 
 	log := ev.Log()
-
 	if sz := len(log); sz == 0 || log[sz-1] == byte('\n') {
 		log = log[:sz-1]
 	}
 
-	if log[0] != '{' && log[0] != '[' {
-		log = append([]byte{'"'}, log...)
-		log = append(log, '"')
+	enc := w.getEnc(out)
+
+	data := map[string]interface{}{
+		"namespace": ev.Source().Namespace(),
+		"name":      ev.Source().Name(),
+		"container": ev.Source().Container(),
 	}
 
-	if _, err := fmt.Fprintf(out,
-		`{"namespace":"%s","pod":"%s","container":"%s","message":%s}%s`,
-		ev.Source().Namespace(),
-		ev.Source().Name(),
-		ev.Source().Container(),
-		log,
-		"\n",
-	); err != nil {
+	messageMap := map[string]interface{}{}
+	if err := json.Unmarshal(log, &messageMap); err != nil {
+		data["message"] = string(log)
+	} else {
+		data["message"] = messageMap
+	}
+
+	if err := enc.Encode(data); err != nil {
 		return err
 	}
-
 	return nil
 }
