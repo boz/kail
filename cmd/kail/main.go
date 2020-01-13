@@ -41,6 +41,7 @@ var (
 	flagRs         = kingpin.Flag("rs", "replica set").PlaceHolder("NAME").Strings()
 	flagDs         = kingpin.Flag("ds", "daemonset").PlaceHolder("NAME").Strings()
 	flagDeployment = kingpin.Flag("deploy", "deployment").Short('d').PlaceHolder("NAME").Strings()
+	flagJob        = kingpin.Flag("job", "job").Short('j').PlaceHolder("NAME").Strings()
 	flagNode       = kingpin.Flag("node", "node").PlaceHolder("NAME").Strings()
 	flagIng        = kingpin.Flag("ing", "ingress").PlaceHolder("NAME").Strings()
 
@@ -251,6 +252,10 @@ func createDSBuilder() kail.DSBuilder {
 
 	if ids := parseIds("deploy", *flagDeployment); len(ids) > 0 {
 		dsb = dsb.WithDeployment(ids...)
+	}
+
+	if ids := parseIds("job", *flagJob); len(ids) > 0 {
+		dsb = dsb.WithJob(ids...)
 	}
 
 	if ids := parseIds("ing", *flagIng); len(ids) > 0 {

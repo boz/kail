@@ -7,6 +7,7 @@ import (
 	"github.com/boz/kcache/types/daemonset"
 	"github.com/boz/kcache/types/deployment"
 	"github.com/boz/kcache/types/ingress"
+	"github.com/boz/kcache/types/job"
 	"github.com/boz/kcache/types/node"
 	"github.com/boz/kcache/types/pod"
 	"github.com/boz/kcache/types/replicaset"
@@ -29,6 +30,7 @@ type datastore struct {
 	rssBase         replicaset.Controller
 	dssBase         daemonset.Controller
 	deploymentsBase deployment.Controller
+	jobsBase        job.Controller
 	ingressesBase   ingress.Controller
 
 	pods        pod.Controller
@@ -38,6 +40,7 @@ type datastore struct {
 	rss         replicaset.Controller
 	dss         daemonset.Controller
 	deployments deployment.Controller
+	jobs        job.Controller
 	ingresses   ingress.Controller
 
 	readych chan struct{}

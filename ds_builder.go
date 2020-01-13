@@ -2,6 +2,7 @@ package kail
 
 import (
 	"context"
+	"github.com/boz/kcache/types/job"
 
 	logutil "github.com/boz/go-logutil"
 	"github.com/boz/kcache/filter"
@@ -31,6 +32,7 @@ type DSBuilder interface {
 	WithRS(id ...nsname.NSName) DSBuilder
 	WithDS(id ...nsname.NSName) DSBuilder
 	WithDeployment(id ...nsname.NSName) DSBuilder
+	WithJob(id ...nsname.NSName) DSBuilder
 	WithIngress(id ...nsname.NSName) DSBuilder
 
 	Create(ctx context.Context, cs kubernetes.Interface) (DS, error)
@@ -52,6 +54,7 @@ type dsBuilder struct {
 	rss         []nsname.NSName
 	dss         []nsname.NSName
 	deployments []nsname.NSName
+	jobs        []nsname.NSName
 	ingresses   []nsname.NSName
 }
 
@@ -107,6 +110,11 @@ func (b *dsBuilder) WithDS(id ...nsname.NSName) DSBuilder {
 
 func (b *dsBuilder) WithDeployment(id ...nsname.NSName) DSBuilder {
 	b.deployments = append(b.deployments, id...)
+	return b
+}
+
+func (b *dsBuilder) WithJob(id ...nsname.NSName) DSBuilder {
+	b.jobs = append(b.jobs, id...)
 	return b
 }
 
@@ -318,6 +326,26 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 		if err != nil {
 			ds.closeAll()
 			return nil, log.Err(err, "deployment join")
+		}
+	}
+
+	if len(b.jobs) != 0 {
+		ds.jobsBase, err = job.NewController(ctx, log, cs, namespace)
+		if err != nil {
+			ds.closeAll()
+			return nil, log.Err(err, "job base controller")
+		}
+
+		ds.jobs, err = ds.jobsBase.CloneWithFilter(filter.NSName(b.jobs...))
+		if err != nil {
+			ds.closeAll()
+			return nil, log.Err(err, "job controller")
+		}
+
+		ds.pods, err = join.JobPods(ctx, ds.jobs, ds.pods)
+		if err != nil {
+			ds.closeAll()
+			return nil, log.Err(err, "job join")
 		}
 	}
 
