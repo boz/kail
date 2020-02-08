@@ -15,9 +15,9 @@ if [ "$TRAVIS_BRANCH"    != "master" -a \
 fi
 
 # test goreleaser
-curl -sL https://git.io/goreleaser > goreleaser.sh
-chmod 0755 goreleaser.sh
-./goreleaser.sh check
+curl -sL https://git.io/goreleaser > /tmp/goreleaser.sh
+chmod 0755 /tmp/goreleaser.sh
+/tmp/goreleaser.sh check
 
 docker login -u "$DOCKERHUB_USERNAME" -p "$DOCKERHUB_PASSWORD"
 
@@ -28,4 +28,4 @@ fi
 
 DOCKER_TAG="$TRAVIS_TAG" make image-push
 
-GITHUB_TOKEN="$GITHUB_REPO_TOKEN" ./goreleaser.sh
+GITHUB_TOKEN="$GITHUB_REPO_TOKEN" /tmp/goreleaser.sh
