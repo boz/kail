@@ -19,12 +19,13 @@ builds:
   env:
     - CGO_ENABLED=0
 
-brew:
-  github:
-    owner: boz
-    name: homebrew-repo
-  homepage: "https://github.com/boz/kail"
-  description: "kubernetes tail - pod log viewer"
+brews:
+  -
+    github:
+      owner: boz
+      name: homebrew-repo
+    homepage: "https://github.com/boz/kail"
+    description: "kubernetes tail - pod log viewer"
 
 checksum:
   name_template: 'checksums.txt'
