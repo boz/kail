@@ -337,7 +337,6 @@ EOF
 PROJECT_NAME="kail"
 OWNER=boz
 REPO="kail"
-BINARY=kail
 FORMAT=tar.gz
 OS=$(uname_os)
 ARCH=$(uname_arch)
