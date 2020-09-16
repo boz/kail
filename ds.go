@@ -13,6 +13,7 @@ import (
 	"github.com/boz/kcache/types/replicaset"
 	"github.com/boz/kcache/types/replicationcontroller"
 	"github.com/boz/kcache/types/service"
+	"github.com/boz/kcache/types/statefulset"
 )
 
 type DS interface {
@@ -30,18 +31,20 @@ type datastore struct {
 	rssBase         replicaset.Controller
 	dssBase         daemonset.Controller
 	deploymentsBase deployment.Controller
+	statefulsetBase statefulset.Controller
 	jobsBase        job.Controller
 	ingressesBase   ingress.Controller
 
-	pods        pod.Controller
-	services    service.Controller
-	nodes       node.Controller
-	rcs         replicationcontroller.Controller
-	rss         replicaset.Controller
-	dss         daemonset.Controller
-	deployments deployment.Controller
-	jobs        job.Controller
-	ingresses   ingress.Controller
+	pods         pod.Controller
+	services     service.Controller
+	nodes        node.Controller
+	rcs          replicationcontroller.Controller
+	rss          replicaset.Controller
+	dss          daemonset.Controller
+	deployments  deployment.Controller
+	statefulsets statefulset.Controller
+	jobs         job.Controller
+	ingresses    ingress.Controller
 
 	readych chan struct{}
 	donech  chan struct{}
@@ -117,6 +120,7 @@ func (ds *datastore) controllers() []cacheController {
 		ds.rssBase,
 		ds.dssBase,
 		ds.deploymentsBase,
+		ds.statefulsetBase,
 		ds.ingressesBase,
 		ds.pods,
 		ds.services,
@@ -125,6 +129,7 @@ func (ds *datastore) controllers() []cacheController {
 		ds.rss,
 		ds.dss,
 		ds.deployments,
+		ds.statefulsets,
 		ds.ingresses,
 	}
 

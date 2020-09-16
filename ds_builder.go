@@ -2,6 +2,7 @@ package kail
 
 import (
 	"context"
+
 	"github.com/boz/kcache/types/job"
 
 	logutil "github.com/boz/go-logutil"
@@ -15,6 +16,7 @@ import (
 	"github.com/boz/kcache/types/replicaset"
 	"github.com/boz/kcache/types/replicationcontroller"
 	"github.com/boz/kcache/types/service"
+	"github.com/boz/kcache/types/statefulset"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
@@ -32,6 +34,7 @@ type DSBuilder interface {
 	WithRS(id ...nsname.NSName) DSBuilder
 	WithDS(id ...nsname.NSName) DSBuilder
 	WithDeployment(id ...nsname.NSName) DSBuilder
+	WithStatefulSet(id ...nsname.NSName) DSBuilder
 	WithJob(id ...nsname.NSName) DSBuilder
 	WithIngress(id ...nsname.NSName) DSBuilder
 
@@ -43,19 +46,20 @@ func NewDSBuilder() DSBuilder {
 }
 
 type dsBuilder struct {
-	ignore      []labels.Selector
-	selectors   []labels.Selector
-	pods        []nsname.NSName
-	namespaces  []string
-	ignoreNS    []string
-	services    []nsname.NSName
-	nodes       []string
-	rcs         []nsname.NSName
-	rss         []nsname.NSName
-	dss         []nsname.NSName
-	deployments []nsname.NSName
-	jobs        []nsname.NSName
-	ingresses   []nsname.NSName
+	ignore       []labels.Selector
+	selectors    []labels.Selector
+	pods         []nsname.NSName
+	namespaces   []string
+	ignoreNS     []string
+	services     []nsname.NSName
+	nodes        []string
+	rcs          []nsname.NSName
+	rss          []nsname.NSName
+	dss          []nsname.NSName
+	deployments  []nsname.NSName
+	statefulsets []nsname.NSName
+	jobs         []nsname.NSName
+	ingresses    []nsname.NSName
 }
 
 func (b *dsBuilder) WithIgnore(selector ...labels.Selector) DSBuilder {
@@ -110,6 +114,11 @@ func (b *dsBuilder) WithDS(id ...nsname.NSName) DSBuilder {
 
 func (b *dsBuilder) WithDeployment(id ...nsname.NSName) DSBuilder {
 	b.deployments = append(b.deployments, id...)
+	return b
+}
+
+func (b *dsBuilder) WithStatefulSet(id ...nsname.NSName) DSBuilder {
+	b.statefulsets = append(b.statefulsets, id...)
 	return b
 }
 
@@ -326,6 +335,26 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 		if err != nil {
 			ds.closeAll()
 			return nil, log.Err(err, "deployment join")
+		}
+	}
+
+	if len(b.statefulsets) != 0 {
+		ds.statefulsetBase, err = statefulset.NewController(ctx, log, cs, namespace)
+		if err != nil {
+			ds.closeAll()
+			return nil, log.Err(err, "statefulset base controller")
+		}
+
+		ds.statefulsets, err = ds.statefulsetBase.CloneWithFilter(filter.NSName(b.statefulsets...))
+		if err != nil {
+			ds.closeAll()
+			return nil, log.Err(err, "statefulset controller")
+		}
+
+		ds.pods, err = join.StatefulSetPods(ctx, ds.statefulsets, ds.pods)
+		if err != nil {
+			ds.closeAll()
+			return nil, log.Err(err, "statefulset join")
 		}
 	}
 
