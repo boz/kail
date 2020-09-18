@@ -32,18 +32,19 @@ var (
 var (
 	flagIgnore = kingpin.Flag("ignore", "ignore selector").PlaceHolder("SELECTOR").Default("kail.ignore=true").Strings()
 
-	flagLabel      = kingpin.Flag("label", "label").Short('l').PlaceHolder("SELECTOR").Strings()
-	flagPod        = kingpin.Flag("pod", "pod").Short('p').PlaceHolder("NAME").Strings()
-	flagNs         = kingpin.Flag("ns", "namespace").Short('n').PlaceHolder("NAME").Strings()
-	flagIgnoreNs   = kingpin.Flag("ignore-ns", "ignore namespace").PlaceHolder("NAME").Default("kube-system").Strings()
-	flagSvc        = kingpin.Flag("svc", "service").PlaceHolder("NAME").Strings()
-	flagRc         = kingpin.Flag("rc", "replication controller").PlaceHolder("NAME").Strings()
-	flagRs         = kingpin.Flag("rs", "replica set").PlaceHolder("NAME").Strings()
-	flagDs         = kingpin.Flag("ds", "daemonset").PlaceHolder("NAME").Strings()
-	flagDeployment = kingpin.Flag("deploy", "deployment").Short('d').PlaceHolder("NAME").Strings()
-	flagJob        = kingpin.Flag("job", "job").Short('j').PlaceHolder("NAME").Strings()
-	flagNode       = kingpin.Flag("node", "node").PlaceHolder("NAME").Strings()
-	flagIng        = kingpin.Flag("ing", "ingress").PlaceHolder("NAME").Strings()
+	flagLabel       = kingpin.Flag("label", "label").Short('l').PlaceHolder("SELECTOR").Strings()
+	flagPod         = kingpin.Flag("pod", "pod").Short('p').PlaceHolder("NAME").Strings()
+	flagNs          = kingpin.Flag("ns", "namespace").Short('n').PlaceHolder("NAME").Strings()
+	flagIgnoreNs    = kingpin.Flag("ignore-ns", "ignore namespace").PlaceHolder("NAME").Default("kube-system").Strings()
+	flagSvc         = kingpin.Flag("svc", "service").PlaceHolder("NAME").Strings()
+	flagRc          = kingpin.Flag("rc", "replication controller").PlaceHolder("NAME").Strings()
+	flagRs          = kingpin.Flag("rs", "replica set").PlaceHolder("NAME").Strings()
+	flagDs          = kingpin.Flag("ds", "daemonset").PlaceHolder("NAME").Strings()
+	flagDeployment  = kingpin.Flag("deploy", "deployment").Short('d').PlaceHolder("NAME").Strings()
+	flagStatefulSet = kingpin.Flag("sts", "statefulset").PlaceHolder("NAME").Strings()
+	flagJob         = kingpin.Flag("job", "job").Short('j').PlaceHolder("NAME").Strings()
+	flagNode        = kingpin.Flag("node", "node").PlaceHolder("NAME").Strings()
+	flagIng         = kingpin.Flag("ing", "ingress").PlaceHolder("NAME").Strings()
 
 	flagContext = kingpin.Flag("context", "kubernetes context").PlaceHolder("CONTEXT-NAME").String()
 
@@ -252,6 +253,10 @@ func createDSBuilder() kail.DSBuilder {
 
 	if ids := parseIds("deploy", *flagDeployment); len(ids) > 0 {
 		dsb = dsb.WithDeployment(ids...)
+	}
+
+	if ids := parseIds("sts", *flagStatefulSet); len(ids) > 0 {
+		dsb = dsb.WithStatefulSet(ids...)
 	}
 
 	if ids := parseIds("job", *flagJob); len(ids) > 0 {

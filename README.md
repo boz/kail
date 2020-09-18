@@ -21,6 +21,7 @@ Flag | Selection
 `--rc NAME` | match pods belonging to the given replication controller
 `--rs NAME` | match pods belonging to the given replica set
 `-d, --deploy NAME` | match pods belonging to the given deployment
+`--sts NAME` | match pods belonging to the given statefulset
 `-j, --job NAME` | match pods belonging to the given job
 `--node NODE-NAME` | match pods running on the given node
 `--ing NAME` | match pods belonging to services targeted by the given ingress
