@@ -16,6 +16,8 @@ builds:
     - linux
   goarch:
     - amd64
+    - arm
+    - arm64
   env:
     - CGO_ENABLED=0
 
