@@ -13,7 +13,9 @@ import (
 	logutil_logrus "github.com/boz/go-logutil/logrus"
 	"github.com/boz/kail"
 	"github.com/boz/kcache/nsname"
+	"github.com/rs/zerolog"
 	"github.com/sirupsen/logrus"
+	"github.com/yalp/jsonpath"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -69,6 +71,29 @@ var (
 			PlaceHolder("DURATION").
 			Default("1s").
 			Duration()
+
+	flagJson = kingpin.Flag("json", "formats json logs, with optional jsonpath").
+			Default("false").
+			Bool()
+	flagJsonpath = kingpin.Flag("jsonpath", "filters json logs when --json is enabled").
+			PlaceHolder("$.message").
+			String()
+
+	flagZerolog = kingpin.Flag("zerolog", "formats zerolog json logs").
+			Default("false").
+			Bool()
+	flagZerologTimestampFieldName = kingpin.Flag("zerolog-timestamp-field", "sets the zerolog timestamp field name").
+					Default("time").
+					String()
+	flagZerologLevelFieldName = kingpin.Flag("zerolog-level-field", "sets the zerolog level field name").
+					Default("level").
+					String()
+	flagZerologMessageFieldName = kingpin.Flag("zerolog-message-field", "sets the zerolog message field name").
+					Default("message").
+					String()
+	flagZerologErrorFieldName = kingpin.Flag("zerolog-error-field", "sets the zerolog error field name").
+					Default("error").
+					String()
 )
 
 var (
@@ -309,9 +334,32 @@ func createController(
 	return controller
 }
 
-func streamLogs(controller kail.Controller) {
+func createWriter() kail.Writer {
+	if *flagJson {
+		if *flagJsonpath == "" {
+			return kail.NewJsonWriter(os.Stdout, true, nil)
+		} else {
+			jsonfilter, err := jsonpath.Prepare(*flagJsonpath)
+			if err != nil {
+				kingpin.FatalIfError(err, "Invalid jsonpath")
+			}
+			return kail.NewJsonWriter(os.Stdout, true, jsonfilter)
+		}
+	}
 
-	writer := kail.NewWriter(os.Stdout)
+	if *flagZerolog {
+		zerolog.TimestampFieldName = *flagZerologTimestampFieldName
+		zerolog.LevelFieldName = *flagZerologLevelFieldName
+		zerolog.MessageFieldName = *flagZerologMessageFieldName
+		zerolog.ErrorFieldName = *flagZerologErrorFieldName
+		return kail.NewZerologWriter(os.Stdout)
+	}
+
+	return kail.NewWriter(os.Stdout)
+}
+
+func streamLogs(controller kail.Controller) {
+	writer := createWriter()
 
 	for {
 		select {
