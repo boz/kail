@@ -96,13 +96,13 @@ func main() {
 
 	log := createLog()
 
-	cs, rc := createKubeClient()
-
 	dsb := createDSBuilder()
 
 	ctx := logutil.NewContext(context.Background(), log)
 
 	ctx, cancel := context.WithCancel(ctx)
+
+	cs, rc := createKubeClient(ctx)
 
 	sigch := watchSignals(ctx, cancel)
 
@@ -164,7 +164,7 @@ func createLog() logutil.Log {
 	return logutil_logrus.New(parent).WithComponent("kail.main")
 }
 
-func createKubeClient() (kubernetes.Interface, *rest.Config) {
+func createKubeClient(ctx context.Context) (kubernetes.Interface, *rest.Config) {
 
 	config, err := rest.InClusterConfig()
 	switch {
@@ -196,7 +196,7 @@ func createKubeClient() (kubernetes.Interface, *rest.Config) {
 	cs, err := kubernetes.NewForConfig(rc)
 	kingpin.FatalIfError(err, "Error building kubernetes config")
 
-	_, err = cs.CoreV1().Namespaces().List(metav1.ListOptions{})
+	_, err = cs.CoreV1().Namespaces().List(ctx, metav1.ListOptions{})
 	if err != nil && !apierrors.IsForbidden(err) {
 		kingpin.FatalIfError(err, "Can't connnect to kubernetes")
 	}

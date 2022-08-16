@@ -7,7 +7,7 @@ import (
 	"io"
 	"time"
 
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
@@ -151,10 +151,9 @@ func (m *_monitor) readloop(
 
 	req := client.
 		Pods(m.source.Namespace()).
-		GetLogs(m.source.Name(), opts).
-		Context(ctx)
+		GetLogs(m.source.Name(), opts)
 
-	stream, err := req.Stream()
+	stream, err := req.Stream(ctx)
 	if err != nil {
 		return err
 	}
