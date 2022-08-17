@@ -34,8 +34,15 @@ Flag | Selection
 
 When selecting objects by `NAME` (`--svc`, `--pod`, etc...), you can either qualify it with a namespace to restrict the selection to the given namespace, or select across all namespaces by giving just the object name.
 
-Example:
+Examples:
 
+using kubectl:
+```sh
+# match pods belonging to the deployment named 'deploy1' in 'ns1' namespace.
+$ kubectl tail --deploy deploy1 -n ns1
+```
+
+using kail:
 ```sh
 # match pods belonging to a replicaset named 'workers' in any namespace.
 $ kail --rs workers
@@ -73,6 +80,12 @@ Flag | Description
 See [here](https://golang.org/pkg/time/#ParseDuration) for more information on the duration format.
 
 ## Installing
+
+### Krew
+using [krew](https://krew.sigs.k8s.io/):
+```sh
+$ kubectl krew install tail
+```
 
 ### Homebrew
 
