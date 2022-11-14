@@ -149,7 +149,7 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 	// but if the namespace does not exist (or any other problem) we watch namespaces to wait for it
 	if len(b.namespaces) == 1 {
 		namespace = b.namespaces[0]
-		_, err := cs.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
+		_, err := cs.CoreV1().Namespaces().Get(ctx, namespace, metav1.GetOptions{})
 		if err != nil {
 			log.Warnf("could not tail the namespace %s: %v", namespace, err)
 			namespace = ""
