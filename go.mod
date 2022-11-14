@@ -2,12 +2,10 @@ module github.com/boz/kail
 
 go 1.18
 
-replace github.com/boz/kcache v0.4.1-0.20200916082658-69f5988adb8d => github.com/mnaser/kcache v0.0.0-20220816205242-e805863dfd0a
-
 require (
 	github.com/boz/go-lifecycle v0.1.0
 	github.com/boz/go-logutil v0.1.0
-	github.com/boz/kcache v0.4.1-0.20200916082658-69f5988adb8d
+	github.com/boz/kcache v0.5.0
 	github.com/fatih/color v1.13.0
 	github.com/goreleaser/godownloader v0.0.0-20190525212044-f9a1d47be7eb
 	github.com/sirupsen/logrus v1.9.0
