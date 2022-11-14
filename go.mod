@@ -9,7 +9,7 @@ require (
 	github.com/fatih/color v1.13.0
 	github.com/goreleaser/godownloader v0.0.0-20190525212044-f9a1d47be7eb
 	github.com/sirupsen/logrus v1.9.0
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.8.1
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	k8s.io/api v0.24.3
 	k8s.io/apimachinery v0.24.3
