@@ -23,7 +23,7 @@ builds:
 
 brews:
   -
-    github:
+    tap:
       owner: boz
       name: homebrew-repo
     homepage: "https://github.com/boz/kail"
