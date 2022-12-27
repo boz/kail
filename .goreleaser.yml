@@ -27,6 +27,9 @@ brews:
       owner: boz
       name: homebrew-repo
       branch: master
+    commit_author:
+      name: boz
+      email: adam.boz@gmail.com
     goamd64: v2
     homepage: "https://github.com/boz/kail"
     description: "kubernetes tail - pod log viewer"
@@ -39,6 +42,9 @@ krews:
       owner: boz
       name: krew-index
       branch: master
+    commit_author:
+      name: boz
+      email: adam.boz@gmail.com
     homepage: "https://github.com/boz/kail"
     description: |-
       Kail https://github.com/boz/kail - "Just show me the logs"
