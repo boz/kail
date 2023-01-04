@@ -1,6 +1,3 @@
-# This is an example goreleaser.yaml file with some sane defaults.
-# Make sure to check the documentation at http://goreleaser.com
-
 env:
   - GO111MODULE=on
 
@@ -9,40 +6,87 @@ before:
     - go mod download
 
 builds:
-- main: cmd/kail/main.go
-  binary: kail
-  goos:
-    - darwin
-    - linux
-  goarch:
-    - amd64
-    - arm
-    - arm64
-  env:
-    - CGO_ENABLED=0
+  - main: cmd/kail/main.go
+    binary: kail
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm
+      - arm64
+    goamd64:
+      - v1
+      - v2
+      - v3
+    env:
+      - CGO_ENABLED=0
 
 brews:
-  -
-    tap:
+  - tap:
       owner: boz
       name: homebrew-repo
+      branch: master
+    commit_author:
+      name: boz
+      email: adam.boz@gmail.com
+    goamd64: v2
     homepage: "https://github.com/boz/kail"
     description: "kubernetes tail - pod log viewer"
 
+krews:
+  - name: tail
+    goarm: 6
+    goamd64: v2
+    index:
+      owner: boz
+      name: krew-index
+      branch: master
+    commit_author:
+      name: boz
+      email: adam.boz@gmail.com
+    homepage: "https://github.com/boz/kail"
+    description: |-
+      Kail https://github.com/boz/kail - "Just show me the logs"
+
+      Stream logs from all matched containers of all matched pods.  Match pods by service,
+      replicaset, deployment, and others.  Adjusts to a changing cluster - pods are
+      added and removed from logging as they fall in or out of the selection.
+
+      Documentation:
+        See https://github.com/boz/kail or
+        $ kubectl tail --help
+
+      Usage:
+        
+        # match all pods
+        $ kubectl tail
+        
+        # match pods in the 'frontend' namespace
+        $ kubectl tail --ns staging
+        
+        # match pods belonging to a replicaset named 'workers' in any namespace.
+        $ kubectl tail --rs workers
+        
+        # match pods belonging to the replicaset named 'workers' only in the 'staging' namespace
+        $ kubectl tail --rs staging/workers
+        
+        # match pods belonging to both the service "frontend" and the deployment "webapp"
+        $ kubectl tail --svc frontend --deploy webapp
+    short_description: "Stream logs from multiple pods and containers using simple, dynamic source selection."
+
 checksum:
-  name_template: 'checksums.txt'
+  name_template: "checksums.txt"
 snapshot:
   name_template: "{{ .Tag }}-next"
 changelog:
   sort: asc
   filters:
     exclude:
-    - '^docs:'
-    - '^test:'
+      - "^docs:"
+      - "^test:"
 
 release:
   github:
     owner: boz
     name: kail
-  prerelease: false
-  draft: false

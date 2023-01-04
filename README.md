@@ -81,6 +81,13 @@ $ brew tap boz/repo
 $ brew install boz/repo/kail
 ```
 
+### Krew
+
+```sh
+$ kubectl krew install tail
+$ kubectl tail -h
+```
+
 ### Downloading
 
 Kail binaries for Linux and OSX can be found on the [latest release](https://github.com/boz/kail/releases/latest) page.  Download and install into your `$GOPATH/bin` with:
