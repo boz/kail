@@ -92,10 +92,6 @@ $ kubectl tail -h
 
 Kail binaries for Linux and OSX can be found on the [latest release](https://github.com/boz/kail/releases/latest) page.  Download and install into your `$GOPATH/bin` with:
 
-```sh
-$ bash <( curl -sfL https://raw.githubusercontent.com/boz/kail/master/godownloader.sh) -b "$GOPATH/bin"
-```
-
 ### Running in a cluster with `kubectl`
 
 The docker image [abozanich/kail](https://hub.docker.com/r/abozanich/kail/) is available for running `kail` from within a kubernetes pod via `kubectl`.
