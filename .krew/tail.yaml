@@ -1,0 +1,82 @@
+apiVersion: krew.googlecontainertools.github.com/v1alpha2
+kind: Plugin
+metadata:
+  name: tail
+spec:
+  version: "{{ .TagName }}"
+  platforms:
+  - {{addURIAndSha "https://github.com/boz/kail/releases/download/{{ .TagName }}/kail_{{ .TagName }}_darwin_arm64.tar.gz" .TagName }}
+    selector:
+      matchLabels:
+        os: darwin
+        arch: arm64
+    bin: kail
+    files:
+    - from: "kail"
+      to: "."
+    - from: LICENSE.txt
+      to: .
+  - {{addURIAndSha "https://github.com/boz/kail/releases/download/{{ .TagName }}/kail_{{ .TagName }}_darwin_amd64v2.tar.gz" .TagName }}
+    selector:
+      matchLabels:
+        os: darwin
+        arch: amd64
+    bin: kail
+    files:
+    - from: "kail"
+      to: "."
+    - from: LICENSE.txt
+      to: .
+  - {{addURIAndSha "https://github.com/boz/kail/releases/download/{{ .TagName }}/kail_{{ .TagName }}_linux_arm64.tar.gz" .TagName }}
+    selector:
+      matchLabels:
+        os: linux
+        arch: arm64
+    bin: kail
+    files:
+    - from: "kail"
+      to: "."
+    - from: LICENSE.txt
+      to: .
+  - {{addURIAndSha "https://github.com/boz/kail/releases/download/{{ .TagName }}/kail_{{ .TagName }}_linux_amd64v2.tar.gz" .TagName }}
+    selector:
+      matchLabels:
+        os: linux
+        arch: amd64
+    bin: kail
+    files:
+    - from: "kail"
+      to: "."
+    - from: LICENSE.txt
+      to: .
+  homepage: https://github.com/boz/kail
+  shortDescription: Stream logs from multiple pods and containers using simple, dynamic source selection.
+  description: |-
+    Kail https://github.com/boz/kail - "Just show me the logs"
+
+    Stream logs from all matched containers of all matched pods.  Match pods by service,
+    replicaset, deployment, and others.  Adjusts to a changing cluster - pods are
+    added and removed from logging as they fall in or out of the selection.
+
+    Documentation:
+
+      See https://github.com/boz/kail or
+
+      $ kubectl tail --help
+
+    Usage:
+
+      # match all pods
+      $ kubectl tail
+
+      # match pods in the 'frontend' namespace
+      $ kubectl tail --ns staging
+
+      # match pods belonging to a replicaset named 'workers' in any namespace.
+      $ kubectl tail --rs workers
+
+      # match pods belonging to the replicaset named 'workers' only in the 'staging' namespace
+      $ kubectl tail --rs staging/workers
+
+      # match pods belonging to both the service "frontend" and the deployment "webapp"
+      $ kubectl tail --svc frontend --deploy webapp

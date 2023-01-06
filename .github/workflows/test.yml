@@ -3,9 +3,9 @@ name: test
 on:
   push:
     tags:
-      - v*
+      - "**"
     branches:
-      - main
+      - master
   pull_request:
 
 permissions:
@@ -18,6 +18,6 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
         with:
-           go-version-file: go.mod
-           cache: true
+          go-version-file: go.mod
+          cache: true
       - run: go test -v ./...

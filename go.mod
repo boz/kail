@@ -10,7 +10,6 @@ require (
 	github.com/rs/zerolog v1.15.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.1
-	github.com/yalp/jsonpath v0.0.0-20180802001716-5cc68e5049a0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	k8s.io/api v0.26.0
 	k8s.io/apimachinery v0.26.0
