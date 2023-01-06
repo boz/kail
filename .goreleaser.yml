@@ -21,29 +21,32 @@ builds:
     env:
       - CGO_ENABLED=0
     ldflags:
-      - -s -w 
-      - -X github.com/boz/tail/version.Version={{.Tag}} 
-      - -X github.com/boz/tail/version.Commit={{.ShortCommit}} 
-      - -X github.com/boz/tail/version.Date={{.Date}} 
+      - -s -w
+      - -X github.com/boz/tail/version.Version={{.Tag}}
+      - -X github.com/boz/tail/version.Commit={{.ShortCommit}}
+      - -X github.com/boz/tail/version.Date={{.Date}}
       - -X github.com/boz/tail/version.BuiltBy=GoReleaser
       - -X github.com/boz/tail/version.OsName={{.Os}}
       - -X github.com/boz/tail/version.PlatformName={{.Arch}}
+      - -X main.version={{.Tag}}
+      - -X main.commit={{.ShortCommit}}
 
 archives:
-  - 
-    name_template: '{{ .ProjectName }}_{{ .Tag }}_{{ .Os }}_{{ .Arch }}{{ with .Arm }}v{{ . }}{{ end }}{{ with .Mips }}_{{ . }}{{ end }}{{ if not (eq .Amd64 "v1") }}{{ .Amd64 }}{{ end }}'
+  - name_template: '{{ .ProjectName }}_{{ .Tag }}_{{ .Os }}_{{ .Arch }}{{ with .Arm }}v{{ . }}{{ end }}{{ with .Mips }}_{{ . }}{{ end }}{{ if not (eq .Amd64 "v1") }}{{ .Amd64 }}{{ end }}'
 
 brews:
   - tap:
       owner: boz
       name: homebrew-repo
       branch: master
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     commit_author:
       name: boz
       email: adam.boz@gmail.com
     goamd64: v2
     homepage: "https://github.com/boz/kail"
     description: "kubernetes tail - pod log viewer"
+    skip_upload: true
 
 checksum:
   name_template: "checksums.txt"
