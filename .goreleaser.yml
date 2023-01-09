@@ -1,3 +1,5 @@
+project_name: kail
+
 env:
   - GO111MODULE=on
 
@@ -47,6 +49,29 @@ brews:
     homepage: "https://github.com/boz/kail"
     description: "kubernetes tail - pod log viewer"
     skip_upload: true
+
+dockers:
+  - image_templates:
+      - ghcr.io/boz/{{ .ProjectName }}:{{ .Tag }}-amd64
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates:
+      - --platform=linux/amd64
+      - --label=org.opencontainers.image.title={{ .ProjectName }}
+      - --label=org.opencontainers.image.description={{ .ProjectName }}
+      - --label=org.opencontainers.image.url=https://github.com/boz/{{ .ProjectName }}
+      - --label=org.opencontainers.image.source=https://github.com/boz/{{ .ProjectName }}
+      - --label=org.opencontainers.image.version={{ .Tag }}
+      - --label=org.opencontainers.image.created={{ time "2006-01-02T15:04:05Z07:00" }}
+      - --label=org.opencontainers.image.revision={{ .FullCommit }}
+      - --label=org.opencontainers.image.licenses=MIT
+docker_manifests:
+  - name_template: ghcr.io/boz/{{ .ProjectName }}:{{ .Tag }}
+    image_templates:
+      - ghcr.io/boz/{{ .ProjectName }}:{{ .Tag }}-amd64
+  - name_template: ghcr.io/boz/{{ .ProjectName }}:latest
+    image_templates:
+      - ghcr.io/boz/{{ .ProjectName }}:{{ .Tag }}-amd64
 
 checksum:
   name_template: "checksums.txt"
