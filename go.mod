@@ -6,7 +6,7 @@ require (
 	github.com/boz/go-lifecycle v0.1.0
 	github.com/boz/go-logutil v0.1.0
 	github.com/boz/kcache v0.5.0
-	github.com/fatih/color v1.14.0
+	github.com/fatih/color v1.14.1
 	github.com/rs/zerolog v1.29.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.1
