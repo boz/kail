@@ -114,7 +114,7 @@ $ kubectl run -it --rm -l kail.ignore=true --restart=Never --image=abozanich/kai
 ### Install build and dev dependencies
 
 * [govendor](https://github.com/kardianos/govendor)
-* [minikube](https://kubernetes.io/docs/getting-started-guides/minikube/)
+* [minikube](https://minikube.sigs.k8s.io/docs/start/)
 * _linux only_: [musl-gcc](https://www.musl-libc.org/how.html) for building docker images.
 
 ### Install source code and golang dependencies
