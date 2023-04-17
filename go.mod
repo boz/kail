@@ -7,7 +7,7 @@ require (
 	github.com/boz/go-logutil v0.1.0
 	github.com/boz/kcache v0.5.0
 	github.com/fatih/color v1.15.0
-	github.com/rs/zerolog v1.29.0
+	github.com/rs/zerolog v1.29.1
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.2
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
