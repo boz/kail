@@ -3,7 +3,7 @@ module github.com/boz/kail
 go 1.20
 
 require (
-	github.com/boz/go-lifecycle v0.1.0
+	github.com/boz/go-lifecycle v0.1.1
 	github.com/boz/go-logutil v0.1.0
 	github.com/boz/kcache v0.5.0
 	github.com/fatih/color v1.15.0
