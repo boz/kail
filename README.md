@@ -69,9 +69,8 @@ Flag | Description
 `--dry-run` | Print initial matched pods and exit
 `--log-level LEVEL` | Set the logging level (default: `error`)
 `--log-file PATH` | Write output to `PATH` (default: `/dev/stderr`)
-`--since DURATION` | Display logs as old as given duration. Ex: `5s`, `2m`, `1.5h` or `2h45m` (defaults: `1s`)
+`--since DURATION` | Display logs as old as given duration. Ex: `5s`, `2m`, `1.5h` or `2h45m` (defaults: `1s`). See [here](https://golang.org/pkg/time/#ParseDuration) for more information on the duration format.
 `-o, --output` | You can choose to display logs in default, raw (without prefix), json, pretty json and zerolog formats.
-See [here](https://golang.org/pkg/time/#ParseDuration) for more information on the duration format.
 
 ## Installing
 
