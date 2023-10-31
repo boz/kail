@@ -49,6 +49,28 @@ spec:
       to: "."
     - from: LICENSE.txt
       to: .
+  - {{addURIAndSha "https://github.com/boz/kail/releases/download/{{ .TagName }}/kail_{{ .TagName }}_windows_arm64.tar.gz" .TagName }}
+    selector:
+      matchLabels:
+        os: windows
+        arch: arm64
+    bin: kail
+    files:
+      - from: "kail"
+        to: "."
+      - from: LICENSE.txt
+        to: .
+  - {{addURIAndSha "https://github.com/boz/kail/releases/download/{{ .TagName }}/kail_{{ .TagName }}_windows_amd64v2.tar.gz" .TagName }}
+    selector:
+      matchLabels:
+        os: windows
+        arch: amd64
+    bin: kail
+    files:
+      - from: "kail"
+        to: "."
+      - from: LICENSE.txt
+        to: .
   homepage: https://github.com/boz/kail
   shortDescription: Stream logs from multiple pods and containers using simple, dynamic source selection.
   description: |-
