@@ -1,6 +1,6 @@
 module github.com/boz/kail
 
-go 1.20
+go 1.21
 
 require (
 	github.com/boz/go-lifecycle v0.1.1
