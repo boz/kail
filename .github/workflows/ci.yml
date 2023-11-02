@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  packages: write # To push Docker images to ghcr.io
 
 jobs:
   goreleaser:
