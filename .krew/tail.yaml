@@ -54,7 +54,7 @@ spec:
       matchLabels:
         os: windows
         arch: arm64
-    bin: kail
+    bin: kail.exe
     files:
       - from: "kail.exe"
         to: "."
@@ -65,7 +65,7 @@ spec:
       matchLabels:
         os: windows
         arch: amd64
-    bin: kail
+    bin: kail.exe
     files:
       - from: "kail.exe"
         to: "."
