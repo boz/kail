@@ -21,3 +21,9 @@ jobs:
           go-version-file: go.mod
           cache: true
       - run: go test -v ./...
+      - name: Validate krew-index manifest
+        run: |
+          go install sigs.k8s.io/krew/cmd/validate-krew-manifest@latest
+          docker run --rm -v ./.krew/tail.yaml:/tmp/template-file.yaml ghcr.io/rajatjindal/krew-release-bot:latest krew-release-bot template --tag $(git describe --abbrev=0 --tags) --template-file /tmp/template-file.yaml 1>/tmp/tail.yaml
+          ~/go/bin/validate-krew-manifest -manifest /tmp/tail.yaml
+  
