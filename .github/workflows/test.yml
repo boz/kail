@@ -23,6 +23,8 @@ jobs:
       - run: go test -v ./...
       - name: Validate krew-index manifest
         run: |
+          pwd
+          ls -la ./          
           set -euo pipefail
           KREW_VERSION=v0.4.4
           cd "$(mktemp -d)"
