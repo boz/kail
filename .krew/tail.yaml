@@ -56,7 +56,7 @@ spec:
         arch: arm64
     bin: kail
     files:
-      - from: "kail"
+      - from: "kail.exe"
         to: "."
       - from: LICENSE.txt
         to: .
@@ -67,7 +67,7 @@ spec:
         arch: amd64
     bin: kail
     files:
-      - from: "kail"
+      - from: "kail.exe"
         to: "."
       - from: LICENSE.txt
         to: .
