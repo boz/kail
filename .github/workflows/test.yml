@@ -21,3 +21,20 @@ jobs:
           go-version-file: go.mod
           cache: true
       - run: go test -v ./...
+      - name: Validate krew-index manifest
+        run: |
+          set -euo pipefail
+          KREW_VERSION=v0.4.4
+          pushd "$(mktemp -d)"
+          curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/download/${KREW_VERSION}/krew.yaml"
+          curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/download/${KREW_VERSION}/krew-linux_amd64.tar.gz"
+          tar zxvf krew-linux_amd64.tar.gz
+          ./krew-linux_amd64 install --manifest=krew.yaml --archive=krew-linux_amd64.tar.gz
+          popd
+          export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
+          export TAG=$(curl -sL https://github.com/boz/kail/releases/latest -H "Accept: application/json" | jq -r .tag_name)
+          ls -la ./.krew/tail.yaml          
+          docker run --rm -v ./.krew/tail.yaml:/tmp/template-file.yaml ghcr.io/rajatjindal/krew-release-bot:latest krew-release-bot template --tag ${TAG} --template-file /tmp/template-file.yaml 1>/tmp/tail.yaml
+          go install sigs.k8s.io/krew/cmd/validate-krew-manifest@latest
+          ~/go/bin/validate-krew-manifest -manifest /tmp/tail.yaml
+  

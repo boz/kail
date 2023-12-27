@@ -38,6 +38,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
       - name: Update krew-index
-        uses: rajatjindal/krew-release-bot@v0.0.43
+        uses: rajatjindal/krew-release-bot@v0.0.46
         with:
           krew_template_file: .krew/tail.yaml
