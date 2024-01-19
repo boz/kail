@@ -47,6 +47,7 @@ var (
 	flagJob         = kingpin.Flag("job", "job").Short('j').PlaceHolder("NAME").Strings()
 	flagNode        = kingpin.Flag("node", "node").PlaceHolder("NAME").Strings()
 	flagIng         = kingpin.Flag("ing", "ingress").PlaceHolder("NAME").Strings()
+	flagRegex       = kingpin.Flag("regex", "regex to filter pod name").PlaceHolder("REGEX").String()
 
 	flagContext = kingpin.Flag("context", "kubernetes context").PlaceHolder("CONTEXT-NAME").String()
 
@@ -286,6 +287,10 @@ func createDSBuilder() kail.DSBuilder {
 
 	if ids := parseIds("ing", *flagIng); len(ids) > 0 {
 		dsb = dsb.WithIngress(ids...)
+	}
+
+	if flagRegex != nil && *flagRegex != "" {
+		dsb = dsb.WithRegex(*flagRegex)
 	}
 
 	return dsb

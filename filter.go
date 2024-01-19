@@ -1,10 +1,13 @@
 package kail
 
 import (
+	"regexp"
 	"sort"
 
+	"github.com/boz/kcache/filter"
 	"github.com/boz/kcache/nsname"
 	"k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type ContainerFilter interface {
@@ -70,4 +73,27 @@ func SourcesForPod(
 	})
 
 	return id, sources
+}
+
+func NameRegexFileter(regex string) (filter.Filter, error) {
+	compile, err := regexp.Compile(regex)
+	if err != nil {
+		return nil, err
+	}
+	return nameRegexFilter{compile}, nil
+}
+
+type nameRegexFilter struct {
+	regex *regexp.Regexp
+}
+
+func (f nameRegexFilter) Accept(obj metav1.Object) bool {
+	return f.regex.MatchString(obj.GetName())
+}
+
+func (f nameRegexFilter) Equals(other filter.Filter) bool {
+	if other, ok := other.(nameRegexFilter); ok {
+		return f.regex.String() == other.regex.String()
+	}
+	return false
 }

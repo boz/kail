@@ -3,8 +3,6 @@ package kail
 import (
 	"context"
 
-	"github.com/boz/kcache/types/job"
-
 	logutil "github.com/boz/go-logutil"
 	"github.com/boz/kcache/filter"
 	"github.com/boz/kcache/join"
@@ -12,6 +10,7 @@ import (
 	"github.com/boz/kcache/types/daemonset"
 	"github.com/boz/kcache/types/deployment"
 	"github.com/boz/kcache/types/ingress"
+	"github.com/boz/kcache/types/job"
 	"github.com/boz/kcache/types/pod"
 	"github.com/boz/kcache/types/replicaset"
 	"github.com/boz/kcache/types/replicationcontroller"
@@ -37,6 +36,7 @@ type DSBuilder interface {
 	WithStatefulSet(id ...nsname.NSName) DSBuilder
 	WithJob(id ...nsname.NSName) DSBuilder
 	WithIngress(id ...nsname.NSName) DSBuilder
+	WithRegex(s string) DSBuilder
 
 	Create(ctx context.Context, cs kubernetes.Interface) (DS, error)
 }
@@ -60,6 +60,7 @@ type dsBuilder struct {
 	statefulsets []nsname.NSName
 	jobs         []nsname.NSName
 	ingresses    []nsname.NSName
+	regex        string
 }
 
 func (b *dsBuilder) WithIgnore(selector ...labels.Selector) DSBuilder {
@@ -132,6 +133,11 @@ func (b *dsBuilder) WithIngress(id ...nsname.NSName) DSBuilder {
 	return b
 }
 
+func (b *dsBuilder) WithRegex(s string) DSBuilder {
+	b.regex = s
+	return b
+}
+
 func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, error) {
 	log := logutil.FromContextOrDefault(ctx)
 
@@ -176,6 +182,18 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 		if err != nil {
 			ds.closeAll()
 			return nil, log.Err(err, "labels filter")
+		}
+	}
+	if len(b.regex) != 0 {
+		regexFilter, err := NameRegexFileter(b.regex)
+		if err != nil {
+			ds.closeAll()
+			return nil, log.Err(err, "regex filter")
+		}
+		ds.pods, err = ds.pods.CloneWithFilter(regexFilter)
+		if err != nil {
+			ds.closeAll()
+			return nil, log.Err(err, "regex filter")
 		}
 	}
 
