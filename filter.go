@@ -6,7 +6,7 @@ import (
 
 	"github.com/boz/kcache/filter"
 	"github.com/boz/kcache/nsname"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -75,7 +75,7 @@ func SourcesForPod(
 	return id, sources
 }
 
-func NameRegexFileter(regex string) (filter.Filter, error) {
+func NewNameRegexFilter(regex string) (filter.Filter, error) {
 	compile, err := regexp.Compile(regex)
 	if err != nil {
 		return nil, err

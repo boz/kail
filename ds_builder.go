@@ -185,7 +185,7 @@ func (b *dsBuilder) Create(ctx context.Context, cs kubernetes.Interface) (DS, er
 		}
 	}
 	if len(b.regex) != 0 {
-		regexFilter, err := NameRegexFileter(b.regex)
+		regexFilter, err := NewNameRegexFilter(b.regex)
 		if err != nil {
 			ds.closeAll()
 			return nil, log.Err(err, "regex filter")
