@@ -37,6 +37,7 @@ var (
 	flagLabel       = kingpin.Flag("label", "label").Short('l').PlaceHolder("SELECTOR").Strings()
 	flagPod         = kingpin.Flag("pod", "pod").Short('p').PlaceHolder("NAME").Strings()
 	flagNs          = kingpin.Flag("ns", "namespace").Short('n').PlaceHolder("NAME").Strings()
+	flagNamespace   = kingpin.Flag("namespace", "namespace (same as --ns)").PlaceHolder("NAME").Strings()
 	flagIgnoreNs    = kingpin.Flag("ignore-ns", "ignore namespace").PlaceHolder("NAME").Default("kube-system").Strings()
 	flagSvc         = kingpin.Flag("svc", "service").PlaceHolder("NAME").Strings()
 	flagRc          = kingpin.Flag("rc", "replication controller").PlaceHolder("NAME").Strings()
@@ -245,8 +246,11 @@ func createDSBuilder() kail.DSBuilder {
 		dsb = dsb.WithNamespace(currentNS)
 	}
 
-	if len(*flagNs) > 0 {
-		dsb = dsb.WithNamespace(*flagNs...)
+	if len(*flagNs) > 0 || len(*flagNamespace) > 0 {
+		// Combine both namespace flags
+		namespaces := append([]string{}, *flagNs...)
+		namespaces = append(namespaces, *flagNamespace...)
+		dsb = dsb.WithNamespace(namespaces...)
 	}
 
 	if len(*flagIgnoreNs) > 0 {

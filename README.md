@@ -16,7 +16,7 @@ Flag | Selection
 --- | ---
 `-l, --label LABEL-SELECTOR` | match pods based on a [standard label selector](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/)
 `-p, --pod NAME` | match pods by name
-`-n, --ns NAMESPACE-NAME` | match pods in the given namespace
+`-n, --ns, --namespace NAMESPACE-NAME` | match pods in the given namespace
 `--svc NAME` | match pods belonging to the given service
 `--rc NAME` | match pods belonging to the given replication controller
 `--rs NAME` | match pods belonging to the given replica set
